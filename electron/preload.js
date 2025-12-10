@@ -1,5 +1,44 @@
 const { contextBridge, ipcRenderer } = require("electron");
 
+function anyAbortSignal(signals) {
+    const controller = new AbortController();
+
+    for (const signal of signals) {
+        if (signal?.aborted) {
+            controller.abort(signal.reason);
+            return controller.signal;
+        }
+    }
+
+    const abort = (event) => {
+        const signal = event.target;
+        controller.abort(signal?.reason);
+        cleanup();
+    };
+
+    const listeners = [];
+
+    const cleanup = () => {
+        for (const off of listeners) off();
+        listeners.length = 0;
+    };
+
+    for (const signal of signals) {
+        if (!signal) continue;
+        if (signal.aborted) {
+            controller.abort(signal.reason);
+            cleanup();
+            return controller.signal;
+        }
+
+        const onAbort = (event) => abort(event);
+        signal.addEventListener('abort', onAbort, { once: true });
+        listeners.push(() => signal.removeEventListener('abort', onAbort));
+    }
+
+    return controller.signal;
+}
+
 // Extract backend URL from process arguments
 let backendUrl = "http://localhost:4000"; // default
 const args = process.argv;
@@ -38,7 +77,7 @@ async function apiFetch(endpoint, options = {}) {
 async function apiFetchStream(endpoint, options = {}, onChunk, signal) {
     const controller = new AbortController();
     const combinedSignal = signal
-        ? new AbortSignal.any([signal, controller.signal])
+        ? anyAbortSignal([signal, controller.signal])
         : controller.signal;
 
     const url = `${backendUrl}${endpoint}`;
