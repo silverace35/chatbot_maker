@@ -1,0 +1,78 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: electron-chat-postgres
+    environment:
+      POSTGRES_DB: electron_chat
+      POSTGRES_USER: electron_user
+      POSTGRES_PASSWORD: electron_password
+    ports:
+      - "15432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backend/database/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U electron_user -d electron_chat"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Ollama service - Phase 2.2 & embeddings
+  # To use real embeddings, you need to pull an embedding model:
+  # docker exec -it electron-chat-ollama ollama pull nomic-embed-text
+  ollama:
+    image: ollama/ollama:latest
+    container_name: electron-chat-ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "pgrep", "-f", "ollama"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+    # Uncomment when ready to use Ollama
+    # profiles:
+    #   - phase2
+
+  # Ollama initialization service - automatically pulls the default model
+  # Note: This only pulls the chat model, not the embedding model
+  # For embeddings, manually pull: docker exec -it electron-chat-ollama ollama pull nomic-embed-text
+  ollama-init:
+    build:
+      context: .
+      dockerfile: Dockerfile.ollama-init
+    container_name: electron-chat-ollama-init
+    depends_on:
+      ollama:
+        condition: service_healthy
+    volumes:
+      - ollama_data:/root/.ollama
+    environment:
+      OLLAMA_DEFAULT_MODEL: "llama3.1:8b"
+      OLLAMA_HOST: "ollama:11434"
+    restart: "no"
+    # Uncomment when ready to use Ollama
+    # profiles:
+    #   - phase2
+
+  # Qdrant service - Phase 2.3
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: electron-chat-qdrant
+    ports:
+      - "6333:6333"
+      - "6334:6334"
+    volumes:
+      - qdrant_data:/qdrant/storage
+    # Uncomment when ready to use Qdrant
+    profiles:
+      - phase2
+
+volumes:
+  postgres_data:
+  ollama_data:
+  qdrant_data:

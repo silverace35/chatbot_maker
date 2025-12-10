@@ -1,0 +1,51 @@
+# Node
+node_modules/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+*.log
+logs/
+
+# Build outputs
+/dist/
+/build/
+/out/
+
+# Electron build artifacts (si tu ajoutes un packager plus tard)
+/release/
+/*.asar
+
+# Vite
+renderer/.vite/
+renderer/dist/
+
+# Coverage
+coverage/
+
+# OS-specific
+.DS_Store
+Thumbs.db
+
+# Editor/JetBrains
+.idea/
+*.iml
+.vscode/
+
+# Env
+.env
+.env.*
+!.env.example
+
+# Temporary
+*.tmp
+*.temp
+*.swp
+*.swo
+
+# RAG Data (profiles and uploaded files)
+backend/data/
+

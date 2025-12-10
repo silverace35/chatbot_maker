@@ -1,0 +1,26 @@
+{
+  "app": {
+    "title": "My Electron App",
+    "nav": {
+      "home": "Home",
+      "jokes": "Jokes"
+    }
+  },
+  "home": {
+    "title": "Home",
+    "description": "This is your home page. Use the navigation to go to the jokes page.",
+    "counter": "Counter: {{count}}"
+  },
+  "jokes": {
+    "title": "Jokes",
+    "description": "Click the button to show a random joke or add your own.",
+    "showRandom": "Show a random joke",
+    "current": "Current joke",
+    "form": {
+      "question": "Question",
+      "answer": "Answer",
+      "submit": "Add a joke"
+    }
+  }
+}
+

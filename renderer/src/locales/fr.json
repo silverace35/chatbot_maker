@@ -1,0 +1,26 @@
+{
+  "app": {
+    "title": "Mon App Electron",
+    "nav": {
+      "home": "Accueil",
+      "jokes": "Blagues",
+      "chat": "Chat LLM"
+    }
+  },
+  "home": {
+    "title": "Accueil",
+    "description": "Ceci est ta page d'accueil. Utilise la navigation pour aller sur la page des blagues.",
+    "counter": "Compteur: {{count}}"
+  },
+  "jokes": {
+    "title": "Blagues",
+    "description": "Clique sur le bouton pour afficher une blague aléatoire ou ajoute la tienne.",
+    "showRandom": "Afficher une blague aléatoire",
+    "current": "Blague actuelle",
+    "form": {
+      "question": "Question",
+      "answer": "Réponse",
+      "submit": "Ajouter une blague"
+    }
+  }
+}

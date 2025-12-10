@@ -1,0 +1,450 @@
+import { Message } from '../models/chatSession';
+
+export interface OllamaGenerateRequest {
+  model: string;
+  prompt: string;
+  system?: string;
+  stream?: boolean;
+  options?: {
+    temperature?: number;
+    top_p?: number;
+    top_k?: number;
+  };
+}
+
+export interface OllamaChatRequest {
+  model: string;
+  messages: Array<{
+    role: 'system' | 'user' | 'assistant';
+    content: string;
+  }>;
+  stream?: boolean;
+  options?: {
+    temperature?: number;
+    top_p?: number;
+    top_k?: number;
+  };
+}
+
+export interface OllamaModel {
+  name: string;
+  modified_at?: string;
+  size?: number;
+}
+
+export interface OllamaModelsResponse {
+  models: OllamaModel[];
+}
+
+export interface OllamaResponse {
+  model: string;
+  created_at: string;
+  message?: {
+    role: string;
+    content: string;
+  };
+  response?: string;
+  done: boolean;
+}
+
+export interface OllamaStreamChunk {
+  content: string;
+  done: boolean;
+}
+
+export interface OllamaEmbeddingRequest {
+  model: string;
+  prompt: string;
+}
+
+export interface OllamaEmbeddingResponse {
+  embedding: number[];
+}
+
+/**
+ * Service d'intégration avec Ollama
+ * 
+ * Ce service communique avec l'API Ollama pour générer des réponses LLM réelles.
+ * Il supporte plusieurs modèles et gère les erreurs de connexion.
+ */
+export class OllamaService {
+  private baseUrl: string;
+  private defaultModel: string;
+  private timeout: number;
+
+  constructor(
+    baseUrl: string = process.env.OLLAMA_URL || 'http://localhost:11434',
+    defaultModel: string = process.env.OLLAMA_DEFAULT_MODEL || 'llama3.1:8b',
+    timeout: number = parseInt(process.env.OLLAMA_TIMEOUT_MS || '600000', 10),
+  ) {
+    this.baseUrl = baseUrl;
+    this.defaultModel = defaultModel;
+    this.timeout = timeout;
+
+    console.log('[OllamaService] Base URL =', this.baseUrl);
+    console.log('[OllamaService] Default model =', this.defaultModel);
+    console.log('[OllamaService] Timeout (ms) =', this.timeout);
+  }
+
+  /**
+   * Vérifie si Ollama est disponible
+   */
+  async isAvailable(): Promise<boolean> {
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 secondes timeout
+
+      const response = await fetch(`${this.baseUrl}/api/tags`, {
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
+      return response.ok;
+    } catch (error) {
+      console.warn('Ollama not available:', error instanceof Error ? error.message : 'Unknown error');
+      return false;
+    }
+  }
+
+  /**
+   * Liste les modèles disponibles dans Ollama
+   */
+  async listModels(): Promise<string[]> {
+    try {
+      const response = await fetch(`${this.baseUrl}/api/tags`);
+      if (!response.ok) {
+        throw new Error(`Failed to list models: ${response.statusText}`);
+      }
+
+      const data = await response.json() as OllamaModelsResponse;
+      return data.models?.map((m) => m.name) || [];
+    } catch (error) {
+      console.error('Error listing Ollama models:', error);
+      return [];
+    }
+  }
+
+  private async ensureModelAvailable(model: string): Promise<void> {
+    const models = await this.listModels();
+    if (!models.includes(model)) {
+      const hint = models.length
+        ? `Modèles disponibles: ${models.join(', ')}`
+        : 'Aucun modèle n’est actuellement disponible dans Ollama. Pense à lancer "ollama pull" ou à télécharger le modèle via l’interface Ollama.';
+      throw new Error(
+        `Le modèle Ollama "${model}" n'est pas disponible. ${hint}`,
+      );
+    }
+  }
+
+  /**
+   * Génère une réponse avec Ollama en utilisant l'API chat
+   * 
+   * @param messages Historique des messages (system, user, assistant)
+   * @param model Modèle à utiliser (optionnel, utilise le modèle par défaut sinon)
+   * @param temperature Température pour la génération (0-1)
+   * @returns Contenu de la réponse générée
+   */
+  async chat(
+    messages: Message[],
+    model?: string,
+    temperature: number = 0.7,
+  ): Promise<string> {
+    const selectedModel = model || this.defaultModel;
+    await this.ensureModelAvailable(selectedModel);
+
+    // Convertir les messages au format Ollama
+    const ollamaMessages = messages.map(msg => ({
+      role: msg.role as 'system' | 'user' | 'assistant',
+      content: msg.content,
+    }));
+
+    const request: OllamaChatRequest = {
+      model: selectedModel,
+      messages: ollamaMessages,
+      stream: false,
+      options: {
+        temperature,
+      },
+    };
+
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), this.timeout);
+
+      const response = await fetch(`${this.baseUrl}/api/chat`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(request),
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        throw new Error(`Ollama API error: ${response.statusText}`);
+      }
+
+      const data = await response.json() as OllamaResponse;
+      
+      if (!data.message?.content) {
+        throw new Error('No content in Ollama response');
+      }
+
+      return data.message.content;
+    } catch (error) {
+      if (error instanceof Error) {
+        if (error.name === 'AbortError') {
+          throw new Error('Ollama request timeout');
+        }
+        throw new Error(`Ollama chat error: ${error.message}`);
+      }
+      throw new Error('Unknown Ollama error');
+    }
+  }
+
+  /**
+   * Génère une réponse simple avec un prompt (API generate)
+   * Utilisé principalement pour des tests simples
+   */
+  async generate(
+    prompt: string,
+    systemContext?: string,
+    model?: string,
+    temperature: number = 0.7,
+  ): Promise<string> {
+    const selectedModel = model || this.defaultModel;
+    await this.ensureModelAvailable(selectedModel);
+
+    const request: OllamaGenerateRequest = {
+      model: selectedModel,
+      prompt,
+      system: systemContext,
+      stream: false,
+      options: {
+        temperature,
+      },
+    };
+
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), this.timeout);
+
+      const response = await fetch(`${this.baseUrl}/api/generate`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(request),
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        throw new Error(`Ollama API error: ${response.statusText}`);
+      }
+
+      const data = await response.json() as OllamaResponse;
+      
+      if (!data.response) {
+        throw new Error('No response in Ollama generate response');
+      }
+
+      return data.response;
+    } catch (error) {
+      if (error instanceof Error) {
+        if (error.name === 'AbortError') {
+          throw new Error('Ollama request timeout');
+        }
+        throw new Error(`Ollama generate error: ${error.message}`);
+      }
+      throw new Error('Unknown Ollama error');
+    }
+  }
+
+  /**
+   * Télécharge un modèle depuis Ollama Hub
+   * Note: Cette opération peut prendre plusieurs minutes
+   */
+  async pullModel(modelName: string): Promise<void> {
+    try {
+      const response = await fetch(`${this.baseUrl}/api/pull`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ name: modelName }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to pull model: ${response.statusText}`);
+      }
+
+      // Note: Le streaming de progression n'est pas géré ici
+      // En production, on pourrait streamer le statut du téléchargement
+      console.log(`Model ${modelName} pull initiated`);
+    } catch (error) {
+      console.error('Error pulling Ollama model:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Génère un embedding pour un texte donné
+   * 
+   * @param text Texte à transformer en embedding
+   * @param model Modèle d'embedding à utiliser (par défaut: nomic-embed-text)
+   * @returns Le vecteur d'embedding
+   */
+  async generateEmbedding(
+    text: string,
+    model: string = 'nomic-embed-text'
+  ): Promise<number[]> {
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 secondes timeout
+
+      const request: OllamaEmbeddingRequest = {
+        model,
+        prompt: text,
+      };
+
+      const response = await fetch(`${this.baseUrl}/api/embeddings`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(request),
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        throw new Error(`Ollama embeddings API error: ${response.statusText}`);
+      }
+
+      const data = await response.json() as OllamaEmbeddingResponse;
+
+      if (!data.embedding || !Array.isArray(data.embedding)) {
+        throw new Error('Invalid embedding response from Ollama');
+      }
+
+      return data.embedding;
+    } catch (error) {
+      if (error instanceof Error) {
+        if (error.name === 'AbortError') {
+          throw new Error('Ollama embedding request timeout');
+        }
+        throw new Error(`Ollama embedding error: ${error.message}`);
+      }
+      throw new Error('Unknown Ollama embedding error');
+    }
+  }
+
+  /**
+   * Génère des embeddings pour plusieurs textes (batch)
+   * 
+   * @param texts Tableau de textes à transformer en embeddings
+   * @param model Modèle d'embedding à utiliser (par défaut: nomic-embed-text)
+   * @returns Tableau de vecteurs d'embeddings
+   */
+  async generateEmbeddings(
+    texts: string[],
+    model: string = 'nomic-embed-text'
+  ): Promise<number[][]> {
+    // Ollama doesn't support batch embedding natively, so we process sequentially
+    // In production, consider implementing parallel processing with rate limiting
+    const embeddings: number[][] = [];
+    
+    for (const text of texts) {
+      const embedding = await this.generateEmbedding(text, model);
+      embeddings.push(embedding);
+    }
+
+    return embeddings;
+  }
+
+  /**
+   * Génère une réponse avec Ollama en utilisant l'API chat en mode streaming
+   *
+   * @param messages Historique des messages (system, user, assistant)
+   * @param model Modèle à utiliser (optionnel, utilise le modèle par défaut sinon)
+   * @param temperature Température pour la génération (0-1)
+   * @returns Un itérateur asynchrone de chunks de texte
+   */
+  async *chatStream(
+    messages: Message[],
+    model?: string,
+    temperature: number = 0.7,
+  ): AsyncGenerator<OllamaStreamChunk> {
+    const selectedModel = model || this.defaultModel;
+    await this.ensureModelAvailable(selectedModel);
+
+    const ollamaMessages = messages.map((msg) => ({
+      role: msg.role as 'system' | 'user' | 'assistant',
+      content: msg.content,
+    }));
+
+    const request: OllamaChatRequest = {
+      model: selectedModel,
+      messages: ollamaMessages,
+      stream: true,
+      options: {
+        temperature,
+      },
+    };
+
+    // Pour le streaming, on ne force pas de timeout agressif: on laisse Ollama
+    // gérer la durée du flux. Si besoin, OLLAMA_TIMEOUT_MS pourra être utilisée
+    // pour un timeout plus long via un AbortController optionnel.
+
+    try {
+      const response = await fetch(`${this.baseUrl}/api/chat`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(request),
+      });
+
+      if (!response.ok || !response.body) {
+        throw new Error(`Ollama API error (stream): ${response.statusText}`);
+      }
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+
+      let accumulated = '';
+
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        const chunkText = decoder.decode(value, { stream: true });
+
+        const lines = chunkText.split(/\r?\n/).filter((l) => l.trim().length > 0);
+        for (const line of lines) {
+          try {
+            const json = JSON.parse(line) as OllamaResponse;
+            const piece = json.message?.content || json.response || '';
+            if (piece) {
+              accumulated += piece;
+              yield { content: piece, done: !!json.done };
+            }
+          } catch {
+            // ignore malformed line
+          }
+        }
+      }
+
+      yield { content: '', done: true };
+    } catch (error) {
+      throw error;
+    }
+  }
+}
+
+// Instance singleton du service Ollama
+export const ollamaService = new OllamaService();
