@@ -37,7 +37,7 @@ export default function HistoryPage({ onLoadConversation }: HistoryPageProps) {
       setProfiles(loadedProfiles)
     } catch (err) {
       console.error('Error loading history:', err)
-      setError('Erreur lors du chargement de l\'historique. Vérifiez que le backend est démarré.')
+      setError(t('history.error'))
     } finally {
       setIsLoading(false)
     }
@@ -64,7 +64,7 @@ export default function HistoryPage({ onLoadConversation }: HistoryPageProps) {
       >
         <CircularProgress />
         <Typography variant="body2" color="text.secondary">
-          Chargement de l'historique...
+          {t('history.loading')}
         </Typography>
       </Box>
     )
@@ -104,7 +104,7 @@ export default function HistoryPage({ onLoadConversation }: HistoryPageProps) {
         <Typography variant="body2" color="text.secondary">
           {sessions.length === 0
             ? t('history.emptyStateDescription')
-            : `${sessions.length} conversation${sessions.length > 1 ? 's' : ''}`}
+            : t('history.conversationsCount', { count: sessions.length })}
         </Typography>
       </Paper>
 

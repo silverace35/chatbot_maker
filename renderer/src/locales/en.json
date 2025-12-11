@@ -17,7 +17,11 @@
     "messagesCount_plural": "{{count}} messages",
     "loadConversation": "Load this conversation",
     "createdAt": "Created on",
-    "updatedAt": "Updated on"
+    "updatedAt": "Updated on",
+    "loading": "Loading history...",
+    "error": "Error loading history. Please check that the backend is running.",
+    "conversationsCount": "{{count}} conversation",
+    "conversationsCount_plural": "{{count}} conversations"
   },
   "home": {
     "title": "Home",

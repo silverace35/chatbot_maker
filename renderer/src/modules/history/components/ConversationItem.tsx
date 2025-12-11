@@ -19,9 +19,9 @@ function getLastMessage(messages: ChatMessage[]): ChatMessage | null {
   return messages[messages.length - 1]
 }
 
-function formatDate(date: string | Date): string {
+function formatDate(date: string | Date, locale: string): string {
   const d = typeof date === 'string' ? new Date(date) : date
-  return d.toLocaleString('fr-FR', {
+  return d.toLocaleString(locale, {
     year: 'numeric',
     month: 'short',
     day: 'numeric',
@@ -31,9 +31,10 @@ function formatDate(date: string | Date): string {
 }
 
 export default function ConversationItem({ session, profile, onLoad }: ConversationItemProps) {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const lastMessage = getLastMessage(session.messages)
   const messageCount = session.messages.length
+  const locale = i18n.language || 'fr-FR'
 
   return (
     <Card
@@ -108,10 +109,10 @@ export default function ConversationItem({ session, profile, onLoad }: Conversat
           {/* Timestamps */}
           <Box sx={{ display: 'flex', gap: 2 }}>
             <Typography variant="caption" color="text.secondary">
-              {t('history.createdAt')}: {formatDate(session.createdAt)}
+              {t('history.createdAt')}: {formatDate(session.createdAt, locale)}
             </Typography>
             <Typography variant="caption" color="text.secondary">
-              {t('history.updatedAt')}: {formatDate(session.updatedAt)}
+              {t('history.updatedAt')}: {formatDate(session.updatedAt, locale)}
             </Typography>
           </Box>
         </CardContent>

@@ -17,7 +17,11 @@
     "messagesCount_plural": "{{count}} messages",
     "loadConversation": "Charger cette conversation",
     "createdAt": "Créée le",
-    "updatedAt": "Mise à jour le"
+    "updatedAt": "Mise à jour le",
+    "loading": "Chargement de l'historique...",
+    "error": "Erreur lors du chargement de l'historique. Vérifiez que le backend est démarré.",
+    "conversationsCount": "{{count}} conversation",
+    "conversationsCount_plural": "{{count}} conversations"
   },
   "home": {
     "title": "Accueil",
