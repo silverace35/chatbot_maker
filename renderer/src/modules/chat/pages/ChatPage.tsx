@@ -1,12 +1,11 @@
 import { useState, useEffect, useRef } from 'react'
-import { Box, Alert, Typography, Chip, useTheme, alpha, IconButton, Tooltip } from '@mui/material'
+import { Box, Alert, Typography, Chip, useTheme, alpha, IconButton, Tooltip, Button } from '@mui/material'
 import StorageIcon from '@mui/icons-material/Storage'
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined'
-import RefreshIcon from '@mui/icons-material/Refresh'
+import AddCommentIcon from '@mui/icons-material/AddComment'
 import ChatMessages from '../components/ChatMessages/ChatMessages'
 import ChatInput from '../components/ChatInput/ChatInput'
 import ProfileSelector from '../components/ProfileSelector/ProfileSelector'
-import ProfileDialog from '../components/ProfileDialog/ProfileDialog'
 import { chatService } from '@/services/chat/chat.service'
 import { profileService } from '@/services/profile/profile.service'
 import type { ChatMessage, ChatSession } from '@/services/chat/chat.service.types'
@@ -18,9 +17,10 @@ interface ChatPageProps {
   loadedSession?: ChatSession | null
   loadedProfile?: Profile | null
   onSessionCleared?: () => void
+  onCreateProfile?: () => void
 }
 
-export default function ChatPage({ loadedSession, loadedProfile, onSessionCleared }: ChatPageProps) {
+export default function ChatPage({ loadedSession, loadedProfile, onSessionCleared, onCreateProfile }: ChatPageProps) {
   const theme = useTheme()
   // State
   const [profiles, setProfiles] = useState<Profile[]>([])
@@ -29,8 +29,6 @@ export default function ChatPage({ loadedSession, loadedProfile, onSessionCleare
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [profileDialogOpen, setProfileDialogOpen] = useState(false)
-  const [isCreatingProfile, setIsCreatingProfile] = useState(false)
   const [isStreaming, setIsStreaming] = useState(false)
   const streamHandleRef = useRef<ChatStreamHandle | null>(null)
   const streamingGenerationIdRef = useRef<number | null>(null)
@@ -79,33 +77,32 @@ export default function ChatPage({ loadedSession, loadedProfile, onSessionCleare
     }
   }
 
-  const handleCreateProfile = async (data: CreateProfileFormData) => {
-    try {
-      setIsCreatingProfile(true)
-      setError(null)
-      const newProfile = await profileService.createProfile(data)
-      setProfiles([...profiles, newProfile])
-      setSelectedProfileId(newProfile.id)
-      setProfileDialogOpen(false)
-    } catch (err) {
-      console.error('Error creating profile:', err)
-      setError('Erreur lors de la création du profil.')
-    } finally {
-      setIsCreatingProfile(false)
+  const handleSelectProfile = (profileId: string) => {
+    // Si on change de profil, on reset la conversation
+    if (profileId !== selectedProfileId) {
+      // Stop any ongoing stream before changing profile
+      if (streamHandleRef.current) {
+        streamHandleRef.current.stop()
+        streamHandleRef.current = null
+        setIsStreaming(false)
+        setIsLoading(false)
+      }
+
+      setSelectedProfileId(profileId)
+      // Reset session when changing profile
+      setCurrentSessionId(null)
+      setMessages([])
     }
   }
 
-  const handleSelectProfile = (profileId: string) => {
-    // Stop any ongoing stream before changing profile
+  const handleNewConversation = () => {
+    // Stop any ongoing stream
     if (streamHandleRef.current) {
       streamHandleRef.current.stop()
       streamHandleRef.current = null
       setIsStreaming(false)
       setIsLoading(false)
     }
-    
-    setSelectedProfileId(profileId)
-    // Reset session when changing profile
     setCurrentSessionId(null)
     setMessages([])
   }
@@ -222,11 +219,6 @@ export default function ChatPage({ loadedSession, loadedProfile, onSessionCleare
 
   const selectedProfile = profiles.find((p) => p.id === selectedProfileId)
 
-  const handleNewConversation = () => {
-    setCurrentSessionId(null)
-    setMessages([])
-  }
-
   return (
     <Box
       sx={{
@@ -245,25 +237,33 @@ export default function ChatPage({ loadedSession, loadedProfile, onSessionCleare
           borderBottom: `1px solid ${theme.palette.divider}`,
           backgroundColor: alpha(theme.palette.background.paper, 0.6),
           backdropFilter: 'blur(10px)',
+          pr: 2,
         }}
       >
         <ProfileSelector
           profiles={profiles}
           selectedProfileId={selectedProfileId}
           onSelectProfile={handleSelectProfile}
-          onCreateProfile={() => setProfileDialogOpen(true)}
+          onCreateProfile={onCreateProfile || (() => {})}
           loading={isLoading}
         />
 
-        {/* Actions */}
-        {currentSessionId && (
-          <Box sx={{ pr: 2 }}>
-            <Tooltip title="Nouvelle conversation">
-              <IconButton onClick={handleNewConversation} size="small">
-                <RefreshIcon />
-              </IconButton>
-            </Tooltip>
-          </Box>
+        {/* Bouton Nouveau Chat - toujours visible si un profil est sélectionné */}
+        {selectedProfileId && (
+          <Button
+            variant="outlined"
+            size="small"
+            startIcon={<AddCommentIcon />}
+            onClick={handleNewConversation}
+            disabled={messages.length === 0 && !currentSessionId}
+            sx={{
+              borderRadius: 2,
+              textTransform: 'none',
+              flexShrink: 0,
+            }}
+          >
+            Nouveau chat
+          </Button>
         )}
       </Box>
 
@@ -344,14 +344,6 @@ export default function ChatPage({ loadedSession, loadedProfile, onSessionCleare
             ? 'Posez votre question...'
             : 'Sélectionnez un profil pour commencer'
         }
-      />
-
-      {/* Profile Creation Dialog */}
-      <ProfileDialog
-        open={profileDialogOpen}
-        onClose={() => setProfileDialogOpen(false)}
-        onSubmit={handleCreateProfile}
-        loading={isCreatingProfile}
       />
     </Box>
   )

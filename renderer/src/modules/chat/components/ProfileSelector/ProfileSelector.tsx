@@ -34,9 +34,7 @@ export default function ProfileSelector({
         alignItems: 'center',
         p: 2,
         px: { xs: 2, md: 4 },
-        borderBottom: `1px solid ${theme.palette.divider}`,
-        backgroundColor: alpha(theme.palette.background.paper, 0.5),
-        backdropFilter: 'blur(10px)',
+        flex: 1,
       }}
     >
       <FormControl

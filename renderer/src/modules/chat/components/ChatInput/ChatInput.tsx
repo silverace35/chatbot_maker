@@ -53,11 +53,12 @@ export default function ChatInput({
           maxWidth: 800,
           mx: 'auto',
           display: 'flex',
-          alignItems: 'flex-end',
+          alignItems: 'center',
           gap: 1,
           p: 1,
           pl: 2,
           borderRadius: 3,
+          minHeight: 56,
           backgroundColor: theme.palette.mode === 'dark'
             ? alpha(theme.palette.grey[800], 0.6)
             : alpha(theme.palette.grey[100], 0.8),

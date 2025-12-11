@@ -19,6 +19,7 @@ export interface OllamaChatRequest {
     content: string;
   }>;
   stream?: boolean;
+  keep_alive?: number | string; // -1 pour garder en mémoire indéfiniment, ou durée comme "5m"
   options?: {
     temperature?: number;
     top_p?: number;
@@ -71,6 +72,8 @@ export class OllamaService {
   private baseUrl: string;
   private defaultModel: string;
   private timeout: number;
+  private isWarmedUp: boolean = false;
+  private warmupInProgress: boolean = false;
 
   constructor(
     baseUrl: string = process.env.OLLAMA_URL || 'http://localhost:11434',
@@ -84,6 +87,73 @@ export class OllamaService {
     console.log('[OllamaService] Base URL =', this.baseUrl);
     console.log('[OllamaService] Default model =', this.defaultModel);
     console.log('[OllamaService] Timeout (ms) =', this.timeout);
+  }
+
+  /**
+   * Précharge le modèle en mémoire GPU pour éviter le cold start
+   * Envoie une requête minimale pour forcer Ollama à charger le modèle
+   */
+  async warmup(model?: string): Promise<boolean> {
+    if (this.isWarmedUp || this.warmupInProgress) {
+      return this.isWarmedUp;
+    }
+
+    this.warmupInProgress = true;
+    const selectedModel = model || this.defaultModel;
+
+    console.log(`[OllamaService] 🔥 Warming up model "${selectedModel}"...`);
+    const startTime = Date.now();
+
+    try {
+      // Vérifier d'abord que le modèle est disponible
+      const models = await this.listModels();
+      if (!models.includes(selectedModel)) {
+        console.warn(`[OllamaService] ⚠️ Model "${selectedModel}" not found. Available: ${models.join(', ')}`);
+        this.warmupInProgress = false;
+        return false;
+      }
+
+      // Envoyer une requête minimale pour forcer le chargement du modèle
+      // keep_alive: -1 maintient le modèle en mémoire indéfiniment
+      const response = await fetch(`${this.baseUrl}/api/generate`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: selectedModel,
+          prompt: 'Hi',
+          stream: false,
+          options: {
+            num_predict: 1, // Générer seulement 1 token pour être rapide
+          },
+          keep_alive: -1, // Garder le modèle chargé indéfiniment
+        }),
+      });
+
+      if (response.ok) {
+        const duration = Date.now() - startTime;
+        console.log(`[OllamaService] ✅ Model "${selectedModel}" warmed up in ${duration}ms`);
+        this.isWarmedUp = true;
+        this.warmupInProgress = false;
+        return true;
+      } else {
+        console.warn(`[OllamaService] ⚠️ Warmup failed: ${response.statusText}`);
+        this.warmupInProgress = false;
+        return false;
+      }
+    } catch (error) {
+      console.error('[OllamaService] ❌ Warmup error:', error instanceof Error ? error.message : error);
+      this.warmupInProgress = false;
+      return false;
+    }
+  }
+
+  /**
+   * Vérifie si le modèle est préchargé
+   */
+  isModelWarmedUp(): boolean {
+    return this.isWarmedUp;
   }
 
   /**
@@ -162,6 +232,7 @@ export class OllamaService {
       model: selectedModel,
       messages: ollamaMessages,
       stream: false,
+      keep_alive: -1, // Garder le modèle chargé en mémoire GPU indéfiniment
       options: {
         temperature,
       },
@@ -390,6 +461,7 @@ export class OllamaService {
       model: selectedModel,
       messages: ollamaMessages,
       stream: true,
+      keep_alive: -1, // Garder le modèle chargé en mémoire GPU indéfiniment
       options: {
         temperature: options?.temperature ?? 0.7,
       },

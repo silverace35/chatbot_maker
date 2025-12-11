@@ -9,7 +9,6 @@ import {
   IconButton,
   CircularProgress,
   Alert,
-  LinearProgress,
   useTheme,
   alpha,
   Tooltip,
@@ -23,8 +22,9 @@ import {
 } from '@mui/icons-material';
 import { ragService } from '@/services/rag/rag.service';
 import { profileService } from '@/services/profile/profile.service';
-import type { Resource, IndexingJob, Profile } from '@/types/electron-api';
-import { GlassCard, StatusBadge } from '@/modules/shared/components';
+import type { Resource, Profile } from '@/types/electron-api';
+import { GlassCard, StatusBadge, IndexingProgress } from '@/modules/shared/components';
+import { useIndexingStatus } from '@/hooks/useIndexingStatus';
 
 interface RAGPanelProps {
   profile: Profile;
@@ -34,10 +34,23 @@ interface RAGPanelProps {
 export default function RAGPanel({ profile, onProfileUpdate }: RAGPanelProps) {
   const theme = useTheme();
   const [resources, setResources] = useState<Resource[]>([]);
-  const [indexingJob, setIndexingJob] = useState<IndexingJob | null>(null);
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
+
+  // Indexing status hook
+  const {
+    indexingJob,
+    isIndexing,
+    progress: indexingProgress,
+    statusMessage: indexingStatusMessage,
+    error: indexingError,
+    startIndexing,
+    refreshStatus: refreshIndexingStatus,
+  } = useIndexingStatus({
+    profileId: profile.id,
+    enabled: profile.ragEnabled,
+    onProfileUpdated: onProfileUpdate,
+  });
 
   // Load resources
   const loadResources = async () => {
@@ -49,43 +62,8 @@ export default function RAGPanel({ profile, onProfileUpdate }: RAGPanelProps) {
     }
   };
 
-  // Load latest indexing job
-  const loadIndexingJob = async () => {
-    try {
-      const jobs = await ragService.listIndexingJobs(profile.id);
-      if (jobs.length > 0) {
-        setIndexingJob(jobs[0]);
-      }
-    } catch (err) {
-      console.error('Error loading indexing jobs:', err);
-    }
-  };
-
-  // Poll indexing job status
-  useEffect(() => {
-    if (indexingJob && (indexingJob.status === 'pending' || indexingJob.status === 'processing')) {
-      const interval = setInterval(async () => {
-        try {
-          const updatedJob = await ragService.getIndexingJob(indexingJob.id);
-          setIndexingJob(updatedJob);
-
-          // If completed, reload profile to get updated index status
-          if (updatedJob.status === 'completed' || updatedJob.status === 'failed') {
-            const updatedProfile = await profileService.getProfile(profile.id);
-            onProfileUpdate?.(updatedProfile);
-          }
-        } catch (err) {
-          console.error('Error polling job status:', err);
-        }
-      }, 2000);
-
-      return () => clearInterval(interval);
-    }
-  }, [indexingJob, profile.id, onProfileUpdate]);
-
   useEffect(() => {
     loadResources();
-    loadIndexingJob();
   }, [profile.id]);
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -131,24 +109,12 @@ export default function RAGPanel({ profile, onProfileUpdate }: RAGPanelProps) {
   };
 
   const handleStartIndexing = async () => {
-    setLoading(true);
-    setError(null);
-
-    try {
-      const job = await ragService.startIndexing(profile.id);
-      setIndexingJob(job);
-
-      // Reload profile to get updated status
-      const updatedProfile = await profileService.getProfile(profile.id);
-      onProfileUpdate?.(updatedProfile);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Indexing failed to start');
-    } finally {
-      setLoading(false);
-    }
+    await startIndexing();
   };
 
-  const getIndexStatus = (): 'success' | 'warning' | 'error' | 'default' | 'pending' | 'info' => {
+  // Dériver le statut pour l'affichage
+  const getIndexStatusBadge = (): 'success' | 'warning' | 'error' | 'default' | 'pending' | 'info' => {
+    if (isIndexing) return 'info';
     switch (profile.indexStatus) {
       case 'ready': return 'success';
       case 'processing': return 'info';
@@ -159,7 +125,8 @@ export default function RAGPanel({ profile, onProfileUpdate }: RAGPanelProps) {
     }
   };
 
-  const getStatusLabel = () => {
+  const getIndexStatusLabel = () => {
+    if (isIndexing) return 'Indexation...';
     switch (profile.indexStatus) {
       case 'ready': return 'Indexé';
       case 'processing': return 'Indexation...';
@@ -189,9 +156,9 @@ export default function RAGPanel({ profile, onProfileUpdate }: RAGPanelProps) {
             Fichiers sources
           </Typography>
           <StatusBadge
-            status={getIndexStatus()}
-            label={getStatusLabel()}
-            pulse={profile.indexStatus === 'processing'}
+            status={getIndexStatusBadge()}
+            label={getIndexStatusLabel()}
+            pulse={isIndexing}
           />
         </Box>
         <Box sx={{ display: 'flex', gap: 1 }}>
@@ -214,66 +181,42 @@ export default function RAGPanel({ profile, onProfileUpdate }: RAGPanelProps) {
           </Button>
           <Button
             variant="contained"
-            startIcon={loading ? <CircularProgress size={16} color="inherit" /> : <PlayIcon />}
+            startIcon={isIndexing ? <CircularProgress size={16} color="inherit" /> : <PlayIcon />}
             onClick={handleStartIndexing}
-            disabled={loading || resources.length === 0}
+            disabled={isIndexing || resources.length === 0}
             size="small"
             sx={{ borderRadius: 2 }}
           >
-            Indexer
+            {isIndexing ? 'Indexation...' : 'Indexer'}
           </Button>
         </Box>
       </Box>
 
       {/* Error */}
-      {error && (
+      {(error || indexingError) && (
         <Alert
           severity="error"
           sx={{ mb: 2, borderRadius: 2 }}
           onClose={() => setError(null)}
         >
-          {error}
+          {error || indexingError}
         </Alert>
       )}
 
       {/* Indexing progress */}
-      {indexingJob && (indexingJob.status === 'processing' || indexingJob.status === 'pending') && (
-        <Box
-          sx={{
-            mb: 3,
-            p: 2,
-            borderRadius: 2,
-            backgroundColor: alpha(theme.palette.info.main, 0.1),
-            border: `1px solid ${alpha(theme.palette.info.main, 0.2)}`,
-          }}
-        >
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
-            <Typography variant="body2" fontWeight={500}>
-              Indexation en cours...
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              {indexingJob.progress}%
-            </Typography>
-          </Box>
-          <LinearProgress
-            variant="determinate"
-            value={indexingJob.progress}
-            sx={{
-              borderRadius: 1,
-              height: 6,
-            }}
+      {(isIndexing || indexingJob) && (
+        <Box sx={{ mb: 3 }}>
+          <IndexingProgress
+            job={indexingJob}
+            isIndexing={isIndexing}
+            progress={indexingProgress}
+            statusMessage={indexingStatusMessage}
+            error={indexingError}
+            onRefresh={refreshIndexingStatus}
           />
-          <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>
-            {indexingJob.processedSteps} / {indexingJob.totalSteps} ressources traitées
-          </Typography>
         </Box>
       )}
 
-      {indexingJob && indexingJob.status === 'failed' && (
-        <Alert severity="error" sx={{ mb: 2, borderRadius: 2 }}>
-          Erreur d'indexation : {indexingJob.error}
-        </Alert>
-      )}
 
       {/* Resources list */}
       <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1.5 }}>

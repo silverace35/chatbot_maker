@@ -60,13 +60,18 @@ export default function ChatMessages({ messages, isLoading, assistantName }: Cha
       {messages.length === 0 && !isLoading && (
         <Box
           sx={{
-            flex: 1,
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
             p: 4,
             textAlign: 'center',
+            width: '100%',
+            maxWidth: 500,
           }}
         >
           <Box

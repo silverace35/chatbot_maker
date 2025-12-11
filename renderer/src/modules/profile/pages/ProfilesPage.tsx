@@ -1,72 +1,70 @@
-import { useState, useEffect } from 'react';
-import { Box, Alert, Typography, useTheme, alpha } from '@mui/material';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { Box, Alert, Typography } from '@mui/material';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import ProfileList from '../components/ProfileList/ProfileList';
 import ProfileDetails from '../components/ProfileDetails/ProfileDetails';
-import ProfileDialog from '@/modules/chat/components/ProfileDialog/ProfileDialog';
 import { profileService } from '@/services/profile/profile.service';
-import type { Profile, CreateProfilePayload } from '@/services/profile/profile.service.types';
+import type { Profile } from '@/services/profile/profile.service.types';
 import { EmptyState } from '@/modules/shared/components';
 
-export default function ProfilesPage() {
+interface ProfilesPageProps {
+  onCreateProfile?: () => void;
+  onEditProfile?: (profileId: string) => void;
+}
+
+export default function ProfilesPage({ onCreateProfile, onEditProfile }: ProfilesPageProps) {
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [selectedProfileId, setSelectedProfileId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [profileDialogOpen, setProfileDialogOpen] = useState(false);
-  const [editingProfile, setEditingProfile] = useState<Profile | null>(null);
-  const [isSubmittingProfile, setIsSubmittingProfile] = useState(false);
+  const pollingRef = useRef<NodeJS.Timeout | null>(null);
+  const isMountedRef = useRef(true);
+  const initialLoadDoneRef = useRef(false);
 
-  // Load profiles on mount
-  useEffect(() => {
-    loadProfiles();
-  }, []);
-
-  const loadProfiles = async () => {
+  // Load profiles
+  const loadProfiles = useCallback(async (autoSelectFirst = false) => {
     try {
-      setError(null);
       const loadedProfiles = await profileService.listProfiles();
-      setProfiles(loadedProfiles);
 
-      // Auto-select first profile if none selected
-      if (!selectedProfileId && loadedProfiles.length > 0) {
-        setSelectedProfileId(loadedProfiles[0].id);
+      if (!isMountedRef.current) return;
+
+      setProfiles(loadedProfiles);
+      setError(null);
+
+      // Auto-select first profile only on initial load
+      if (autoSelectFirst && loadedProfiles.length > 0) {
+        setSelectedProfileId(prev => prev || loadedProfiles[0].id);
       }
     } catch (err) {
       console.error('Error loading profiles:', err);
-      setError('Erreur lors du chargement des profils. Vérifiez que le backend est démarré.');
-    }
-  };
-
-  const handleCreateProfile = async (data: CreateProfilePayload) => {
-    try {
-      setIsSubmittingProfile(true);
-      setError(null);
-
-      if (editingProfile) {
-        // Update existing profile
-        const updated = await profileService.updateProfile(editingProfile.id, data);
-        setProfiles(profiles.map((p) => (p.id === updated.id ? updated : p)));
-        if (selectedProfileId === updated.id) {
-          // Trigger re-render by updating selection
-          setSelectedProfileId(null);
-          setTimeout(() => setSelectedProfileId(updated.id), 0);
-        }
-      } else {
-        // Create new profile
-        const newProfile = await profileService.createProfile(data);
-        setProfiles([...profiles, newProfile]);
-        setSelectedProfileId(newProfile.id);
+      if (isMountedRef.current) {
+        setError('Erreur lors du chargement des profils. Vérifiez que le backend est démarré.');
       }
-
-      setProfileDialogOpen(false);
-      setEditingProfile(null);
-    } catch (err) {
-      console.error('Error saving profile:', err);
-      setError('Erreur lors de la sauvegarde du profil.');
-    } finally {
-      setIsSubmittingProfile(false);
     }
-  };
+  }, []);
+
+  // Load profiles on mount and start polling
+  useEffect(() => {
+    isMountedRef.current = true;
+
+    // Initial load with auto-select
+    loadProfiles(true);
+    initialLoadDoneRef.current = true;
+
+    // Poll for profile updates every 3 seconds to catch indexation status changes
+    pollingRef.current = setInterval(() => {
+      if (isMountedRef.current) {
+        loadProfiles(false); // Don't auto-select on polls
+      }
+    }, 3000);
+
+    return () => {
+      isMountedRef.current = false;
+      if (pollingRef.current) {
+        clearInterval(pollingRef.current);
+        pollingRef.current = null;
+      }
+    };
+  }, [loadProfiles]);
 
   const handleDeleteProfile = async () => {
     if (!selectedProfileId) return;
@@ -75,15 +73,12 @@ export default function ProfilesPage() {
     if (!profile) return;
 
     // TODO: Implement delete endpoint in backend
-    // For now, disable delete functionality to avoid state inconsistency
     setError('La suppression de profil n\'est pas encore implémentée dans le backend.');
   };
 
   const handleEditProfile = () => {
-    const profile = profiles.find((p) => p.id === selectedProfileId);
-    if (profile) {
-      setEditingProfile(profile);
-      setProfileDialogOpen(true);
+    if (selectedProfileId && onEditProfile) {
+      onEditProfile(selectedProfileId);
     }
   };
 
@@ -114,10 +109,7 @@ export default function ProfilesPage() {
           profiles={profiles}
           selectedProfileId={selectedProfileId}
           onSelectProfile={setSelectedProfileId}
-          onCreateProfile={() => {
-            setEditingProfile(null);
-            setProfileDialogOpen(true);
-          }}
+          onCreateProfile={onCreateProfile || (() => {})}
         />
       </Box>
 
@@ -140,10 +132,7 @@ export default function ProfilesPage() {
             description="Créez votre premier profil d'assistant pour commencer à personnaliser votre chatbot."
             action={{
               label: 'Créer un profil',
-              onClick: () => {
-                setEditingProfile(null);
-                setProfileDialogOpen(true);
-              },
+              onClick: onCreateProfile || (() => {}),
               icon: <PersonAddIcon />,
             }}
           />
@@ -169,18 +158,6 @@ export default function ProfilesPage() {
           />
         )}
       </Box>
-
-      {/* Profile Dialog (Create/Edit) */}
-      <ProfileDialog
-        open={profileDialogOpen}
-        onClose={() => {
-          setProfileDialogOpen(false);
-          setEditingProfile(null);
-        }}
-        onSubmit={handleCreateProfile}
-        loading={isSubmittingProfile}
-        profile={editingProfile}
-      />
     </Box>
   );
 }

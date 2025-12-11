@@ -4,6 +4,8 @@ import { Box, useTheme, alpha } from '@mui/material'
 import ChatPage from '@/modules/chat/pages/ChatPage'
 import ProfilesPage from '@/modules/profile/pages/ProfilesPage'
 import HistoryPage from '@/modules/history/pages/HistoryPage'
+import CreateProfilePage from '@/modules/profile/pages/CreateProfilePage'
+import EditProfilePage from '@/modules/profile/pages/EditProfilePage'
 import Sidebar, { AppTab } from '@/modules/shared/components/Sidebar'
 import type { ChatSession } from '@/services/chat/chat.service.types'
 import type { Profile } from '@/services/profile/profile.service.types'
@@ -13,6 +15,12 @@ function App() {
   const [currentTab, setCurrentTab] = useState<AppTab>('chat')
   const [loadedSession, setLoadedSession] = useState<ChatSession | null>(null)
   const [loadedProfile, setLoadedProfile] = useState<Profile | null>(null)
+  const [showCreateProfile, setShowCreateProfile] = useState(false)
+  const [editingProfileId, setEditingProfileId] = useState<string | null>(null)
+  // Clé pour forcer un nouveau chat
+  const [chatKey, setChatKey] = useState(0)
+  // Clé pour forcer le refresh de la page profils
+  const [profilesKey, setProfilesKey] = useState(0)
 
   const handleLoadConversation = (session: ChatSession, profile: Profile) => {
     setLoadedSession(session)
@@ -23,6 +31,40 @@ function App() {
   const handleSessionCleared = () => {
     setLoadedSession(null)
     setLoadedProfile(null)
+  }
+
+  const handleCreateProfile = () => {
+    setShowCreateProfile(true)
+  }
+
+  const handleEditProfile = (profileId: string) => {
+    setEditingProfileId(profileId)
+  }
+
+  const handleProfileCreated = (profileId: string) => {
+    setShowCreateProfile(false)
+    setProfilesKey(prev => prev + 1)
+    // Ouvrir le chat avec le nouveau profil
+    setChatKey(prev => prev + 1)
+    setCurrentTab('chat')
+  }
+
+  const handleProfileSaved = () => {
+    setEditingProfileId(null)
+    setProfilesKey(prev => prev + 1)
+  }
+
+  const handleCancelCreateProfile = () => {
+    setShowCreateProfile(false)
+  }
+
+  const handleCancelEditProfile = () => {
+    setEditingProfileId(null)
+  }
+
+  // Gérer le changement d'onglet sans reset le chat
+  const handleTabChange = (tab: AppTab) => {
+    setCurrentTab(tab)
   }
 
   return (
@@ -36,7 +78,7 @@ function App() {
       }}
     >
       {/* Sidebar Navigation */}
-      <Sidebar currentTab={currentTab} onTabChange={setCurrentTab} />
+      <Sidebar currentTab={currentTab} onTabChange={handleTabChange} />
 
       {/* Main Content Area */}
       <Box
@@ -74,15 +116,57 @@ function App() {
             overflow: 'hidden',
           }}
         >
-          {currentTab === 'chat' && (
-            <ChatPage
-              loadedSession={loadedSession}
-              loadedProfile={loadedProfile}
-              onSessionCleared={handleSessionCleared}
+          {/* Page de création de profil */}
+          {showCreateProfile ? (
+            <CreateProfilePage
+              onProfileCreated={handleProfileCreated}
+              onCancel={handleCancelCreateProfile}
             />
+          ) : editingProfileId ? (
+            /* Page d'édition de profil */
+            <EditProfilePage
+              profileId={editingProfileId}
+              onSaved={handleProfileSaved}
+              onCancel={handleCancelEditProfile}
+            />
+          ) : (
+            <>
+              {/* Chat - toujours monté pour préserver l'état */}
+              <Box sx={{
+                display: currentTab === 'chat' ? 'flex' : 'none',
+                flexDirection: 'column',
+                height: '100%',
+              }}>
+                <ChatPage
+                  key={chatKey}
+                  loadedSession={loadedSession}
+                  loadedProfile={loadedProfile}
+                  onSessionCleared={handleSessionCleared}
+                  onCreateProfile={handleCreateProfile}
+                />
+              </Box>
+
+              {/* History */}
+              <Box sx={{
+                display: currentTab === 'history' ? 'block' : 'none',
+                height: '100%',
+              }}>
+                <HistoryPage onLoadConversation={handleLoadConversation} />
+              </Box>
+
+              {/* Profiles */}
+              <Box sx={{
+                display: currentTab === 'profiles' ? 'block' : 'none',
+                height: '100%',
+              }}>
+                <ProfilesPage
+                  key={profilesKey}
+                  onCreateProfile={handleCreateProfile}
+                  onEditProfile={handleEditProfile}
+                />
+              </Box>
+            </>
           )}
-          {currentTab === 'history' && <HistoryPage onLoadConversation={handleLoadConversation} />}
-          {currentTab === 'profiles' && <ProfilesPage />}
         </Box>
       </Box>
     </Box>

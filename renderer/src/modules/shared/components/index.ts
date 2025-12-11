@@ -4,5 +4,6 @@ export { default as Logo } from './Logo';
 export { default as EmptyState } from './EmptyState';
 export { default as StatusBadge } from './StatusBadge';
 export { default as Sidebar } from './Sidebar';
+export { default as IndexingProgress } from './IndexingProgress';
 export type { AppTab } from './Sidebar';
 

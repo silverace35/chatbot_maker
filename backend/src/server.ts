@@ -5,6 +5,7 @@ import chatRoutes from './routes/chat';
 import profileRoutes from './routes/profile';
 import ragRoutes from './routes/rag';
 import { llmLocalService } from './services/llmLocal';
+import { ollamaService } from './services/ollamaService';
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -12,6 +13,7 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 4000;
 const STORE_MODE = process.env.STORE_MODE || 'memory';
+const WARMUP_MODEL = process.env.OLLAMA_WARMUP !== 'false'; // Activer le warmup par défaut
 
 // Middleware
 app.use(cors());
@@ -27,6 +29,8 @@ app.use((req, res, next) => {
 app.use('/api/chat', chatRoutes);
 app.use('/api/profile', profileRoutes);
 app.use('/api/profile', ragRoutes);
+// Mount indexing-jobs route at root level for direct access
+app.use('/api', ragRoutes);
 
 // Health check
 app.get('/health', async (req, res) => {
@@ -69,7 +73,7 @@ async function startServer() {
   try {
     await initializeDatabase();
 
-    app.listen(PORT, () => {
+    app.listen(PORT, async () => {
       console.log('='.repeat(50));
       console.log(`🚀 Backend server started`);
       console.log(`📡 Listening on http://localhost:${PORT}`);
@@ -89,6 +93,20 @@ async function startServer() {
       console.log(`   - POST   /api/profile/:profileId/rag/search`);
       console.log(`   - GET    /health`);
       console.log('='.repeat(50));
+
+      // Warmup du modèle LLM en arrière-plan pour éviter le cold start
+      if (WARMUP_MODEL) {
+        console.log('\n🔥 Starting LLM model warmup in background...');
+        ollamaService.warmup().then((success) => {
+          if (success) {
+            console.log('✅ LLM model is ready for fast responses!');
+          } else {
+            console.log('⚠️  LLM warmup failed - first request may be slow');
+          }
+        }).catch((err) => {
+          console.error('❌ LLM warmup error:', err);
+        });
+      }
     });
   } catch (error) {
     console.error('Failed to initialize application:', error);
