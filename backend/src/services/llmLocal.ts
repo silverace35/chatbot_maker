@@ -171,6 +171,84 @@ export class LLMLocalService {
     };
   }
 
+  /**
+   * Streaming avec fallback :
+   * - essaie de streamer via Ollama si disponible
+   * - en cas d'erreur avant le premier chunk, bascule sur une réponse stub complète
+   * - en cas d'annulation (signal.aborted), s'arrête silencieusement
+   */
+  async *generateStreamWithFallback(
+    messages: Message[],
+    profile: Profile,
+    signal?: AbortSignal,
+  ): AsyncGenerator<{ type: 'chunk' | 'done' | 'error'; content?: string; error?: string }, void, unknown> {
+    // Vérifier la dispo d'Ollama, mais ne jamais bloquer l'appelant très longtemps
+    await this.checkOllamaAvailability();
+
+    const finalMessages = buildMessagesForLLM(profile, messages);
+
+    // Essayer Ollama si marqué disponible
+    if (this.ollamaAvailable) {
+      let anyChunkSent = false;
+      try {
+        for await (const chunk of ollamaService.chatStream(finalMessages, { signal })) {
+          if (signal?.aborted) {
+            // Arrêt silencieux côté client
+            return;
+          }
+
+          if (chunk.content) {
+            anyChunkSent = true;
+            yield { type: 'chunk', content: chunk.content };
+          }
+
+          if (chunk.done) {
+            yield { type: 'done' };
+            return;
+          }
+        }
+
+        // Si Ollama termine sans flag done mais qu'on a déjà envoyé des chunks
+        if (anyChunkSent) {
+          yield { type: 'done' };
+          return;
+        }
+      } catch (error) {
+        console.error('Error during Ollama streaming, will fallback to stub if possible:', error);
+        this.ollamaAvailable = false;
+        this.lastCheck = 0;
+
+        if (signal?.aborted) {
+          // Si l'appelant a annulé, on ne tente pas de stub
+          return;
+        }
+
+        // Si aucune donnée n'a été envoyée, on peut encore basculer sur stub
+        if (!anyChunkSent) {
+          const stub = await this.generateStubResponse(finalMessages, profile);
+          if (signal?.aborted) return;
+          yield { type: 'chunk', content: stub.content };
+          yield { type: 'done' };
+          return;
+        }
+
+        // Si des chunks ont déjà été envoyés, remonter une erreur explicite
+        yield {
+          type: 'error',
+          error: "Erreur lors du streaming LLM. Une partie de la réponse a pu être envoyée.",
+        };
+        return;
+      }
+    }
+
+    // Fallback direct stub si Ollama n'est pas disponible
+    if (signal?.aborted) return;
+    const stub = await this.generateStubResponse(messages, profile);
+    if (signal?.aborted) return;
+    yield { type: 'chunk', content: stub.content };
+    yield { type: 'done' };
+  }
+
   private delay(ms: number): Promise<void> {
     return new Promise(resolve => setTimeout(resolve, ms));
   }

@@ -1,20 +1,23 @@
 const { contextBridge, ipcRenderer } = require("electron");
 
 function anyAbortSignal(signals) {
+    // Filtrer les valeurs falsy ou non-objet pour éviter les erreurs de type
+    const validSignals = (signals || []).filter((s) => s && typeof s === 'object');
+
     const controller = new AbortController();
 
-    for (const signal of signals) {
-        if (signal?.aborted) {
+    // Si aucun signal valide n'est fourni, retourner simplement le signal du controller
+    if (validSignals.length === 0) {
+        return controller.signal;
+    }
+
+    // Si l'un des signaux est déjà aborté, on propage immédiatement
+    for (const signal of validSignals) {
+        if (signal.aborted) {
             controller.abort(signal.reason);
             return controller.signal;
         }
     }
-
-    const abort = (event) => {
-        const signal = event.target;
-        controller.abort(signal?.reason);
-        cleanup();
-    };
 
     const listeners = [];
 
@@ -23,8 +26,20 @@ function anyAbortSignal(signals) {
         listeners.length = 0;
     };
 
-    for (const signal of signals) {
-        if (!signal) continue;
+    const abort = (event) => {
+        const signal = event && event.target && typeof event.target === 'object'
+            ? event.target
+            : undefined;
+        controller.abort(signal && 'reason' in signal ? signal.reason : undefined);
+        cleanup();
+    };
+
+    for (const signal of validSignals) {
+        // Vérifier que l'API d'événements existe bien avant de l'utiliser
+        if (typeof signal.addEventListener !== 'function') {
+            continue;
+        }
+
         if (signal.aborted) {
             controller.abort(signal.reason);
             cleanup();
@@ -33,7 +48,11 @@ function anyAbortSignal(signals) {
 
         const onAbort = (event) => abort(event);
         signal.addEventListener('abort', onAbort, { once: true });
-        listeners.push(() => signal.removeEventListener('abort', onAbort));
+        listeners.push(() => {
+            if (typeof signal.removeEventListener === 'function') {
+                signal.removeEventListener('abort', onAbort);
+            }
+        });
     }
 
     return controller.signal;
@@ -76,8 +95,15 @@ async function apiFetch(endpoint, options = {}) {
 // Helper function for fetch requests with streaming
 async function apiFetchStream(endpoint, options = {}, onChunk, signal) {
     const controller = new AbortController();
-    const combinedSignal = signal
-        ? anyAbortSignal([signal, controller.signal])
+
+    // Si l'appelant ne fournit pas de signal ou fournit autre chose qu'un AbortSignal,
+    // on ne compose pas, on utilise seulement le controller interne.
+    const callerSignal = signal && typeof signal === 'object' && 'aborted' in signal
+        ? signal
+        : undefined;
+
+    const combinedSignal = callerSignal
+        ? anyAbortSignal([callerSignal, controller.signal])
         : controller.signal;
 
     const url = `${backendUrl}${endpoint}`;

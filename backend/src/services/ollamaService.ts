@@ -371,19 +371,17 @@ export class OllamaService {
    * Génère une réponse avec Ollama en utilisant l'API chat en mode streaming
    *
    * @param messages Historique des messages (system, user, assistant)
-   * @param model Modèle à utiliser (optionnel, utilise le modèle par défaut sinon)
-   * @param temperature Température pour la génération (0-1)
+   * @param options Options de streaming (modèle, température, signal d'annulation)
    * @returns Un itérateur asynchrone de chunks de texte
    */
   async *chatStream(
     messages: Message[],
-    model?: string,
-    temperature: number = 0.7,
-  ): AsyncGenerator<OllamaStreamChunk> {
-    const selectedModel = model || this.defaultModel;
+    options?: { model?: string; temperature?: number; signal?: AbortSignal },
+  ): AsyncGenerator<OllamaStreamChunk, void, unknown> {
+    const selectedModel = options?.model || this.defaultModel;
     await this.ensureModelAvailable(selectedModel);
 
-    const ollamaMessages = messages.map((msg) => ({
+    const ollamaMessages = messages.map(msg => ({
       role: msg.role as 'system' | 'user' | 'assistant',
       content: msg.content,
     }));
@@ -393,13 +391,28 @@ export class OllamaService {
       messages: ollamaMessages,
       stream: true,
       options: {
-        temperature,
+        temperature: options?.temperature ?? 0.7,
       },
     };
 
-    // Pour le streaming, on ne force pas de timeout agressif: on laisse Ollama
-    // gérer la durée du flux. Si besoin, OLLAMA_TIMEOUT_MS pourra être utilisée
-    // pour un timeout plus long via un AbortController optionnel.
+    const controller = new AbortController();
+    const externalSignal = options?.signal;
+
+    const onAbort = () => {
+      if (!controller.signal.aborted) {
+        controller.abort();
+      }
+    };
+
+    if (externalSignal) {
+      if (externalSignal.aborted) {
+        controller.abort();
+      } else if (typeof externalSignal.addEventListener === 'function') {
+        externalSignal.addEventListener('abort', onAbort, { once: true });
+      }
+    }
+
+    const timeoutId = setTimeout(() => controller.abort(), this.timeout);
 
     try {
       const response = await fetch(`${this.baseUrl}/api/chat`, {
@@ -408,7 +421,10 @@ export class OllamaService {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(request),
+        signal: controller.signal,
       });
+
+      clearTimeout(timeoutId);
 
       if (!response.ok || !response.body) {
         throw new Error(`Ollama API error (stream): ${response.statusText}`);
@@ -417,34 +433,55 @@ export class OllamaService {
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
 
-      let accumulated = '';
+      try {
+        while (true) {
+          if (externalSignal?.aborted) {
+            break;
+          }
 
-      while (true) {
-        const { value, done } = await reader.read();
-        if (done) break;
-        const chunkText = decoder.decode(value, { stream: true });
+          const { value, done } = await reader.read();
+          if (done) {
+            break;
+          }
 
-        const lines = chunkText.split(/\r?\n/).filter((l) => l.trim().length > 0);
-        for (const line of lines) {
-          try {
-            const json = JSON.parse(line) as OllamaResponse;
-            const piece = json.message?.content || json.response || '';
-            if (piece) {
-              accumulated += piece;
-              yield { content: piece, done: !!json.done };
+          const text = decoder.decode(value, { stream: true });
+          const lines = text.split(/\n/).filter(Boolean);
+
+          for (const line of lines) {
+            try {
+              const data = JSON.parse(line) as OllamaResponse;
+              const contentPart = data.message?.content || data.response || '';
+              const doneFlag = data.done;
+
+              if (contentPart) {
+                yield { content: contentPart, done: !!doneFlag };
+              }
+
+              if (doneFlag) {
+                return;
+              }
+            } catch {
+              // Ligne invalide, on l'ignore simplement
+              continue;
             }
-          } catch {
-            // ignore malformed line
           }
         }
+      } finally {
+        reader.releaseLock();
       }
-
-      yield { content: '', done: true };
     } catch (error) {
+      if ((error as any).name === 'AbortError' || externalSignal?.aborted) {
+        // Annulation ou timeout : on arrête silencieusement le stream
+        return;
+      }
       throw error;
+    } finally {
+      clearTimeout(timeoutId);
+      if (externalSignal && typeof externalSignal.removeEventListener === 'function') {
+        externalSignal.removeEventListener('abort', onAbort as any);
+      }
     }
   }
 }
 
-// Instance singleton du service Ollama
 export const ollamaService = new OllamaService();

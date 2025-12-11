@@ -2,7 +2,6 @@ import { Router, Request, Response } from 'express';
 import { store } from '../store';
 import { llmLocalService, buildMessagesForLLM } from '../services/llmLocal';
 import { SendMessagePayload, Message } from '../models/chatSession';
-import { ollamaService } from '../services/ollamaService';
 import { ragService } from '../services/ragService';
 
 const router = Router();
@@ -129,7 +128,6 @@ router.post('/send-stream', async (req: Request, res: Response) => {
       session = await store.createSession(payload.profileId);
     }
 
-    // Augmenter le message avec le RAG comme dans /send
     let augmentedMessage = payload.message.trim();
     let ragUsed = false;
 
@@ -153,7 +151,6 @@ router.post('/send-stream', async (req: Request, res: Response) => {
     const sessionWithUser = await store.getSession(session.id);
     const sessionMessages = sessionWithUser?.messages || [];
 
-    // Construire les messages pour le LLM en tenant compte du profil (system_context, historique...)
     const finalMessages = buildMessagesForLLM(profile, sessionMessages);
 
     res.setHeader('Content-Type', 'text/event-stream');
@@ -162,40 +159,77 @@ router.post('/send-stream', async (req: Request, res: Response) => {
 
     let assistantContent = '';
 
+    const controller = new AbortController();
+    const signal = controller.signal;
+
+    const abortFromClient = () => {
+      if (!signal.aborted) {
+        controller.abort(new Error('client-aborted'));
+      }
+    };
+
+    req.on('close', abortFromClient);
+    req.on('aborted', abortFromClient);
+
     (async () => {
       try {
-        for await (const chunk of ollamaService.chatStream(finalMessages)) {
-          if (chunk.content) {
-            assistantContent += chunk.content;
-            res.write(`data: ${JSON.stringify({ type: 'chunk', content: chunk.content })}\n\n`);
+        for await (const evt of llmLocalService.generateStreamWithFallback(finalMessages, profile, signal)) {
+          if (signal.aborted) {
+            break;
           }
-          if (chunk.done) {
+
+          if (evt.type === 'chunk' && evt.content) {
+            assistantContent += evt.content;
+            res.write(`data: ${JSON.stringify({ type: 'chunk', content: evt.content })}\n\n`);
+          }
+
+          if (evt.type === 'error') {
+            res.write(`data: ${JSON.stringify({ type: 'error', error: evt.error || 'LLM error' })}\n\n`);
+            break;
+          }
+
+          if (evt.type === 'done') {
             break;
           }
         }
 
-        const assistantMessage: Message = {
-          role: 'assistant',
-          content: assistantContent,
-          timestamp: new Date(),
-        };
+        if (!signal.aborted && assistantContent.trim().length > 0) {
+          const assistantMessage: Message = {
+            role: 'assistant',
+            content: assistantContent,
+            timestamp: new Date(),
+          };
 
-        await store.addMessageToSession(session.id, assistantMessage);
-        const updatedSession = await store.getSession(session.id);
+          await store.addMessageToSession(session.id, assistantMessage);
+          const updatedSession = await store.getSession(session.id);
 
-        res.write(
-          `data: ${JSON.stringify({
-            type: 'done',
-            sessionId: session.id,
-            messages: updatedSession?.messages || [],
-            ragUsed,
-          })}\n\n`,
-        );
-        res.end();
+          res.write(
+            `data: ${JSON.stringify({
+              type: 'done',
+              sessionId: session.id,
+              messages: updatedSession?.messages || [],
+              ragUsed,
+            })}\n\n`,
+          );
+        }
+
+        try {
+          res.end();
+        } catch (_) {}
       } catch (error) {
+        if (signal.aborted) {
+          try { res.end(); } catch (_) {}
+          return;
+        }
+
         console.error('Error in /api/chat/send-stream streaming loop:', error);
-        res.write(`data: ${JSON.stringify({ type: 'error', error: 'LLM error' })}\n\n`);
-        res.end();
+        try {
+          res.write(`data: ${JSON.stringify({ type: 'error', error: 'LLM error' })}\n\n`);
+          res.end();
+        } catch (_) {}
+      } finally {
+        req.off('close', abortFromClient);
+        req.off('aborted', abortFromClient);
       }
     })();
   } catch (error) {

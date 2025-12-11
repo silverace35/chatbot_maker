@@ -23,6 +23,7 @@ export default function ChatPage() {
   const [isCreatingProfile, setIsCreatingProfile] = useState(false)
   const [isStreaming, setIsStreaming] = useState(false)
   const streamHandleRef = useRef<ChatStreamHandle | null>(null)
+  const streamingGenerationIdRef = useRef<number | null>(null)
 
   // Load profiles on mount
   useEffect(() => {
@@ -90,6 +91,9 @@ export default function ChatPage() {
         streamHandleRef.current.stop()
       }
 
+      const generationId = Date.now()
+      streamingGenerationIdRef.current = generationId
+
       const handle = chatService.sendMessageStream(
         {
           sessionId: currentSessionId || undefined,
@@ -97,6 +101,10 @@ export default function ChatPage() {
           message,
         },
         (event) => {
+          if (streamingGenerationIdRef.current !== generationId) {
+            return
+          }
+
           if (event.type === 'chunk') {
             const chunk = event.content ?? ''
             if (!chunk) return
@@ -124,18 +132,27 @@ export default function ChatPage() {
             if (!currentSessionId && event.sessionId) {
               setCurrentSessionId(event.sessionId)
             }
-            if (event.messages) {
+            if (event.messages && event.messages.length > 0) {
               setMessages(event.messages as ChatMessage[])
             }
             setIsLoading(false)
             setIsStreaming(false)
+            streamingGenerationIdRef.current = null
             streamHandleRef.current = null
           }
 
           if (event.type === 'error') {
-            setError(event.error || "Erreur lors de l'envoi du message.")
+            const baseError = event.error || "Erreur lors de l'envoi du message."
+            const isFirstMessageOfSession = !currentSessionId
+
+            setError(
+              isFirstMessageOfSession
+                ? `${baseError} Le modèle local peut être en cours de chargement ou indisponible. Réessayez dans quelques secondes.`
+                : baseError,
+            )
             setIsLoading(false)
             setIsStreaming(false)
+            streamingGenerationIdRef.current = null
             streamHandleRef.current = null
           }
         },
@@ -157,6 +174,7 @@ export default function ChatPage() {
       streamHandleRef.current.stop()
       streamHandleRef.current = null
     }
+    streamingGenerationIdRef.current = null
     setIsLoading(false)
     setIsStreaming(false)
   }
