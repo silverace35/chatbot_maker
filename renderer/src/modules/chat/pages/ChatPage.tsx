@@ -1,5 +1,8 @@
 import { useState, useEffect, useRef } from 'react'
-import { Box, Alert, Typography, Paper, Chip } from '@mui/material'
+import { Box, Alert, Typography, Chip, useTheme, alpha, IconButton, Tooltip } from '@mui/material'
+import StorageIcon from '@mui/icons-material/Storage'
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined'
+import RefreshIcon from '@mui/icons-material/Refresh'
 import ChatMessages from '../components/ChatMessages/ChatMessages'
 import ChatInput from '../components/ChatInput/ChatInput'
 import ProfileSelector from '../components/ProfileSelector/ProfileSelector'
@@ -18,6 +21,7 @@ interface ChatPageProps {
 }
 
 export default function ChatPage({ loadedSession, loadedProfile, onSessionCleared }: ChatPageProps) {
+  const theme = useTheme()
   // State
   const [profiles, setProfiles] = useState<Profile[]>([])
   const [selectedProfileId, setSelectedProfileId] = useState<string | null>(null)
@@ -218,6 +222,11 @@ export default function ChatPage({ loadedSession, loadedProfile, onSessionCleare
 
   const selectedProfile = profiles.find((p) => p.id === selectedProfileId)
 
+  const handleNewConversation = () => {
+    setCurrentSessionId(null)
+    setMessages([])
+  }
+
   return (
     <Box
       sx={{
@@ -227,51 +236,98 @@ export default function ChatPage({ loadedSession, loadedProfile, onSessionCleare
         width: '100%',
       }}
     >
-      {/* Profile Selector */}
-      <ProfileSelector
-        profiles={profiles}
-        selectedProfileId={selectedProfileId}
-        onSelectProfile={handleSelectProfile}
-        onCreateProfile={() => setProfileDialogOpen(true)}
-        loading={isLoading}
-      />
+      {/* Header with Profile Selector */}
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          borderBottom: `1px solid ${theme.palette.divider}`,
+          backgroundColor: alpha(theme.palette.background.paper, 0.6),
+          backdropFilter: 'blur(10px)',
+        }}
+      >
+        <ProfileSelector
+          profiles={profiles}
+          selectedProfileId={selectedProfileId}
+          onSelectProfile={handleSelectProfile}
+          onCreateProfile={() => setProfileDialogOpen(true)}
+          loading={isLoading}
+        />
+
+        {/* Actions */}
+        {currentSessionId && (
+          <Box sx={{ pr: 2 }}>
+            <Tooltip title="Nouvelle conversation">
+              <IconButton onClick={handleNewConversation} size="small">
+                <RefreshIcon />
+              </IconButton>
+            </Tooltip>
+          </Box>
+        )}
+      </Box>
 
       {/* Error Alert */}
       {error && (
-        <Alert severity="error" onClose={() => setError(null)} sx={{ m: 2 }}>
+        <Alert
+          severity="error"
+          onClose={() => setError(null)}
+          sx={{
+            m: 2,
+            borderRadius: 2,
+          }}
+        >
           {error}
         </Alert>
       )}
 
-      {/* Selected Profile Info */}
+      {/* Profile Info Banner */}
       {selectedProfile && (
-        <Paper
-          elevation={0}
+        <Box
           sx={{
-            mx: 2,
+            mx: { xs: 2, md: 4 },
             mt: 2,
             p: 2,
-            backgroundColor: 'grey.50',
-            borderLeft: 3,
-            borderColor: 'primary.main',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 2,
+            borderRadius: 2,
+            backgroundColor: alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.1 : 0.05),
+            border: `1px solid ${alpha(theme.palette.primary.main, 0.2)}`,
           }}
         >
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Box>
-              <Typography variant="body2" fontWeight="bold">
-                Profil actif : {selectedProfile.name}
+          <InfoOutlinedIcon
+            sx={{
+              color: theme.palette.primary.main,
+              fontSize: 20,
+            }}
+          />
+          <Box sx={{ flex: 1 }}>
+            <Typography variant="body2" fontWeight={500}>
+              {selectedProfile.name}
+            </Typography>
+            {selectedProfile.description && (
+              <Typography variant="caption" color="text.secondary">
+                {selectedProfile.description}
               </Typography>
-            </Box>
-            {selectedProfile.ragEnabled && (
-              <Chip
-                label="RAG activé"
-                color="primary"
-                size="small"
-                sx={{ color: '#ffffff' }}
-              />
             )}
           </Box>
-        </Paper>
+          {selectedProfile.ragEnabled && (
+            <Chip
+              icon={<StorageIcon sx={{ fontSize: '16px !important' }} />}
+              label="Base de connaissance active"
+              size="small"
+              sx={{
+                backgroundColor: alpha(theme.palette.secondary.main, 0.15),
+                color: theme.palette.secondary.main,
+                fontWeight: 500,
+                '& .MuiChip-icon': {
+                  color: theme.palette.secondary.main,
+                },
+              }}
+            />
+          )}
+        </Box>
       )}
 
       {/* Messages Area */}
@@ -285,7 +341,7 @@ export default function ChatPage({ loadedSession, loadedProfile, onSessionCleare
         disabled={isLoading || !selectedProfileId}
         placeholder={
           selectedProfileId
-            ? 'Tapez votre message...'
+            ? 'Posez votre question...'
             : 'Sélectionnez un profil pour commencer'
         }
       />

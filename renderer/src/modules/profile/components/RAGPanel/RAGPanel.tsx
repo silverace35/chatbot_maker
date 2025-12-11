@@ -1,30 +1,30 @@
 import { useState, useEffect } from 'react';
 import {
   Box,
-  Paper,
   Typography,
   Button,
   List,
   ListItem,
   ListItemText,
-  ListItemSecondaryAction,
   IconButton,
   CircularProgress,
-  Chip,
   Alert,
   LinearProgress,
+  useTheme,
+  alpha,
+  Tooltip,
 } from '@mui/material';
 import {
   Upload as UploadIcon,
   Delete as DeleteIcon,
-  Refresh as RefreshIcon,
+  PlayArrow as PlayIcon,
+  InsertDriveFile as FileIcon,
   CheckCircle as CheckCircleIcon,
-  Error as ErrorIcon,
-  HourglassEmpty as HourglassIcon,
 } from '@mui/icons-material';
 import { ragService } from '@/services/rag/rag.service';
 import { profileService } from '@/services/profile/profile.service';
 import type { Resource, IndexingJob, Profile } from '@/types/electron-api';
+import { GlassCard, StatusBadge } from '@/modules/shared/components';
 
 interface RAGPanelProps {
   profile: Profile;
@@ -32,6 +32,7 @@ interface RAGPanelProps {
 }
 
 export default function RAGPanel({ profile, onProfileUpdate }: RAGPanelProps) {
+  const theme = useTheme();
   const [resources, setResources] = useState<Resource[]>([]);
   const [indexingJob, setIndexingJob] = useState<IndexingJob | null>(null);
   const [loading, setLoading] = useState(false);
@@ -147,128 +148,218 @@ export default function RAGPanel({ profile, onProfileUpdate }: RAGPanelProps) {
     }
   };
 
-  const getIndexStatusChip = () => {
-    const statusConfig = {
-      none: { label: 'Non indexé', color: 'default' as const, icon: undefined },
-      pending: { label: 'En attente', color: 'warning' as const, icon: <HourglassIcon /> },
-      processing: { label: 'Indexation...', color: 'info' as const, icon: <CircularProgress size={16} /> },
-      ready: { label: 'Prêt', color: 'success' as const, icon: <CheckCircleIcon /> },
-      stale: { label: 'À mettre à jour', color: 'warning' as const, icon: <RefreshIcon /> },
-      error: { label: 'Erreur', color: 'error' as const, icon: <ErrorIcon /> },
-    };
+  const getIndexStatus = (): 'success' | 'warning' | 'error' | 'default' | 'pending' | 'info' => {
+    switch (profile.indexStatus) {
+      case 'ready': return 'success';
+      case 'processing': return 'info';
+      case 'stale': return 'warning';
+      case 'error': return 'error';
+      case 'pending': return 'pending';
+      default: return 'default';
+    }
+  };
 
-    const config = statusConfig[profile.indexStatus];
-    return <Chip label={config.label} color={config.color} size="small" icon={config.icon} />;
+  const getStatusLabel = () => {
+    switch (profile.indexStatus) {
+      case 'ready': return 'Indexé';
+      case 'processing': return 'Indexation...';
+      case 'stale': return 'À mettre à jour';
+      case 'error': return 'Erreur';
+      case 'pending': return 'En attente';
+      default: return 'Non indexé';
+    }
   };
 
   if (!profile.ragEnabled) {
     return (
-      <Paper sx={{ p: 2 }}>
+      <GlassCard sx={{ p: 3 }}>
         <Typography variant="body2" color="text.secondary">
           Le RAG n'est pas activé pour ce profil. Activez-le dans les paramètres du profil pour gérer des ressources.
         </Typography>
-      </Paper>
+      </GlassCard>
     );
   }
 
   return (
-    <Paper sx={{ p: 2 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <Typography variant="h6">Base de connaissance</Typography>
-          {getIndexStatusChip()}
-        </Box>
-        <Button
-          variant="contained"
-          component="label"
-          startIcon={<UploadIcon />}
-          disabled={uploading}
-          size="small"
-        >
-          {uploading ? 'Upload...' : 'Ajouter fichiers'}
-          <input
-            type="file"
-            hidden
-            multiple
-            onChange={handleFileUpload}
-            accept=".txt,.md,.json,.csv"
+    <GlassCard sx={{ p: 3 }}>
+      {/* Header */}
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+          <Typography variant="h6" fontWeight={600}>
+            Fichiers sources
+          </Typography>
+          <StatusBadge
+            status={getIndexStatus()}
+            label={getStatusLabel()}
+            pulse={profile.indexStatus === 'processing'}
           />
-        </Button>
+        </Box>
+        <Box sx={{ display: 'flex', gap: 1 }}>
+          <Button
+            variant="outlined"
+            component="label"
+            startIcon={uploading ? <CircularProgress size={16} /> : <UploadIcon />}
+            disabled={uploading}
+            size="small"
+            sx={{ borderRadius: 2 }}
+          >
+            {uploading ? 'Upload...' : 'Ajouter'}
+            <input
+              type="file"
+              hidden
+              multiple
+              onChange={handleFileUpload}
+              accept=".txt,.md,.json,.csv"
+            />
+          </Button>
+          <Button
+            variant="contained"
+            startIcon={loading ? <CircularProgress size={16} color="inherit" /> : <PlayIcon />}
+            onClick={handleStartIndexing}
+            disabled={loading || resources.length === 0}
+            size="small"
+            sx={{ borderRadius: 2 }}
+          >
+            Indexer
+          </Button>
+        </Box>
       </Box>
 
+      {/* Error */}
       {error && (
-        <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError(null)}>
+        <Alert
+          severity="error"
+          sx={{ mb: 2, borderRadius: 2 }}
+          onClose={() => setError(null)}
+        >
           {error}
         </Alert>
       )}
 
       {/* Indexing progress */}
       {indexingJob && (indexingJob.status === 'processing' || indexingJob.status === 'pending') && (
-        <Box sx={{ mb: 2 }}>
-          <Typography variant="body2" gutterBottom>
-            Indexation en cours... {indexingJob.progress}%
-          </Typography>
-          <LinearProgress variant="determinate" value={indexingJob.progress} />
-          <Typography variant="caption" color="text.secondary">
+        <Box
+          sx={{
+            mb: 3,
+            p: 2,
+            borderRadius: 2,
+            backgroundColor: alpha(theme.palette.info.main, 0.1),
+            border: `1px solid ${alpha(theme.palette.info.main, 0.2)}`,
+          }}
+        >
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+            <Typography variant="body2" fontWeight={500}>
+              Indexation en cours...
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              {indexingJob.progress}%
+            </Typography>
+          </Box>
+          <LinearProgress
+            variant="determinate"
+            value={indexingJob.progress}
+            sx={{
+              borderRadius: 1,
+              height: 6,
+            }}
+          />
+          <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>
             {indexingJob.processedSteps} / {indexingJob.totalSteps} ressources traitées
           </Typography>
         </Box>
       )}
 
       {indexingJob && indexingJob.status === 'failed' && (
-        <Alert severity="error" sx={{ mb: 2 }}>
+        <Alert severity="error" sx={{ mb: 2, borderRadius: 2 }}>
           Erreur d'indexation : {indexingJob.error}
         </Alert>
       )}
 
       {/* Resources list */}
-      <Typography variant="subtitle2" gutterBottom>
-        Fichiers ({resources.length})
+      <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1.5 }}>
+        {resources.length} fichier{resources.length !== 1 ? 's' : ''}
       </Typography>
 
       {resources.length === 0 ? (
-        <Typography variant="body2" color="text.secondary" sx={{ py: 2 }}>
-          Aucun fichier. Ajoutez des fichiers pour créer une base de connaissance.
-        </Typography>
+        <Box
+          sx={{
+            py: 4,
+            textAlign: 'center',
+            borderRadius: 2,
+            border: `2px dashed ${theme.palette.divider}`,
+            backgroundColor: alpha(theme.palette.background.default, 0.5),
+          }}
+        >
+          <UploadIcon sx={{ fontSize: 40, color: theme.palette.text.secondary, mb: 1, opacity: 0.5 }} />
+          <Typography variant="body2" color="text.secondary">
+            Ajoutez des fichiers pour créer votre base de connaissance
+          </Typography>
+          <Typography variant="caption" color="text.secondary">
+            Formats supportés: .txt, .md, .json, .csv
+          </Typography>
+        </Box>
       ) : (
-        <List dense>
+        <List sx={{ py: 0 }}>
           {resources.map((resource) => (
-            <ListItem key={resource.id} divider>
+            <ListItem
+              key={resource.id}
+              sx={{
+                px: 2,
+                py: 1.5,
+                mb: 1,
+                borderRadius: 2,
+                backgroundColor: alpha(theme.palette.background.default, 0.5),
+                border: `1px solid ${theme.palette.divider}`,
+                '&:last-child': { mb: 0 },
+              }}
+            >
+              <Box
+                sx={{
+                  mr: 2,
+                  p: 1,
+                  borderRadius: 1.5,
+                  backgroundColor: alpha(theme.palette.primary.main, 0.1),
+                }}
+              >
+                <FileIcon sx={{ color: theme.palette.primary.main, fontSize: 20 }} />
+              </Box>
               <ListItemText
-                primary={resource.originalName || 'Sans nom'}
-                secondary={`${resource.type} • ${Math.round((resource.sizeBytes || 0) / 1024)} KB • ${
-                  resource.indexed ? 'Indexé' : 'Non indexé'
-                }`}
+                primary={
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Typography variant="body2" fontWeight={500}>
+                      {resource.originalName || 'Sans nom'}
+                    </Typography>
+                    {resource.indexed && (
+                      <CheckCircleIcon sx={{ fontSize: 16, color: theme.palette.success.main }} />
+                    )}
+                  </Box>
+                }
+                secondary={
+                  <Typography variant="caption" color="text.secondary">
+                    {resource.type?.toUpperCase()} • {Math.round((resource.sizeBytes || 0) / 1024)} KB
+                  </Typography>
+                }
               />
-              <ListItemSecondaryAction>
+              <Tooltip title="Supprimer">
                 <IconButton
                   edge="end"
-                  aria-label="delete"
                   onClick={() => handleDeleteResource(resource.id)}
                   size="small"
+                  sx={{
+                    color: theme.palette.text.secondary,
+                    '&:hover': {
+                      color: theme.palette.error.main,
+                      backgroundColor: alpha(theme.palette.error.main, 0.1),
+                    },
+                  }}
                 >
-                  <DeleteIcon />
+                  <DeleteIcon fontSize="small" />
                 </IconButton>
-              </ListItemSecondaryAction>
+              </Tooltip>
             </ListItem>
           ))}
         </List>
       )}
-
-      {/* Index button */}
-      {resources.length > 0 && (
-        <Box sx={{ mt: 2, display: 'flex', gap: 1 }}>
-          <Button
-            variant="outlined"
-            onClick={handleStartIndexing}
-            disabled={loading || indexingJob?.status === 'processing' || indexingJob?.status === 'pending'}
-            startIcon={loading ? <CircularProgress size={16} /> : <RefreshIcon />}
-            fullWidth
-          >
-            {profile.indexStatus === 'none' ? 'Lancer l\'indexation' : 'Réindexer'}
-          </Button>
-        </Box>
-      )}
-    </Paper>
+    </GlassCard>
   );
 }

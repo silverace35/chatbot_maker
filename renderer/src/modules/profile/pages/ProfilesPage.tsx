@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
-import { Box, Alert, Typography } from '@mui/material';
+import { Box, Alert, Typography, useTheme, alpha } from '@mui/material';
+import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import ProfileList from '../components/ProfileList/ProfileList';
 import ProfileDetails from '../components/ProfileDetails/ProfileDetails';
 import ProfileDialog from '@/modules/chat/components/ProfileDialog/ProfileDialog';
 import { profileService } from '@/services/profile/profile.service';
 import type { Profile, CreateProfilePayload } from '@/services/profile/profile.service.types';
+import { EmptyState } from '@/modules/shared/components';
 
 export default function ProfilesPage() {
   const [profiles, setProfiles] = useState<Profile[]>([]);
@@ -100,7 +102,14 @@ export default function ProfilesPage() {
       }}
     >
       {/* Left: Profile List */}
-      <Box sx={{ width: 300, flexShrink: 0 }}>
+      <Box
+        sx={{
+          width: 320,
+          flexShrink: 0,
+          borderRight: 1,
+          borderColor: 'divider',
+        }}
+      >
         <ProfileList
           profiles={profiles}
           selectedProfileId={selectedProfileId}
@@ -115,29 +124,29 @@ export default function ProfilesPage() {
       {/* Right: Profile Details */}
       <Box sx={{ flexGrow: 1, overflow: 'auto' }}>
         {error && (
-          <Alert severity="error" onClose={() => setError(null)} sx={{ m: 2 }}>
+          <Alert
+            severity="error"
+            onClose={() => setError(null)}
+            sx={{ m: 2, borderRadius: 2 }}
+          >
             {error}
           </Alert>
         )}
 
         {!selectedProfile && profiles.length === 0 ? (
-          <Box
-            sx={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              height: '100%',
-              p: 3,
+          <EmptyState
+            icon={<PersonAddIcon />}
+            title="Aucun profil"
+            description="Créez votre premier profil d'assistant pour commencer à personnaliser votre chatbot."
+            action={{
+              label: 'Créer un profil',
+              onClick: () => {
+                setEditingProfile(null);
+                setProfileDialogOpen(true);
+              },
+              icon: <PersonAddIcon />,
             }}
-          >
-            <Typography variant="h5" color="text.secondary" gutterBottom>
-              Aucun profil
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              Créez un profil pour commencer.
-            </Typography>
-          </Box>
+          />
         ) : !selectedProfile ? (
           <Box
             sx={{

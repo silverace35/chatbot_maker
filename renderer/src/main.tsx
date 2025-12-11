@@ -2,9 +2,7 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './App'
-import { ThemeProvider } from '@mui/material/styles'
-import CssBaseline from '@mui/material/CssBaseline'
-import theme from './theme'
+import { ThemeProvider } from './theme/ThemeContext'
 import { BrowserRouter } from 'react-router-dom'
 import './i18n'
 
@@ -16,8 +14,7 @@ if (!container) {
 
 createRoot(container).render(
   <StrictMode>
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
+    <ThemeProvider>
       <BrowserRouter>
         <App />
       </BrowserRouter>

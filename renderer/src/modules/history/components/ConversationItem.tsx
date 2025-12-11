@@ -1,7 +1,10 @@
-import { Card, CardContent, CardActionArea, Typography, Box, Chip } from '@mui/material'
+import { Card, CardContent, CardActionArea, Typography, Box, Avatar, useTheme, alpha } from '@mui/material'
 import { useTranslation } from 'react-i18next'
+import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutline'
+import AccessTimeIcon from '@mui/icons-material/AccessTime'
 import type { ChatSession, ChatMessage } from '@/services/chat/chat.service.types'
 import type { Profile } from '@/services/profile/profile.service.types'
+import { StatusBadge } from '@/modules/shared/components'
 
 interface ConversationItemProps {
   session: ChatSession
@@ -30,91 +33,124 @@ function formatDate(date: string | Date, locale: string): string {
   })
 }
 
+function formatRelativeTime(date: string | Date): string {
+  const d = typeof date === 'string' ? new Date(date) : date
+  const now = new Date()
+  const diffMs = now.getTime() - d.getTime()
+  const diffMins = Math.floor(diffMs / (1000 * 60))
+  const diffHours = Math.floor(diffMs / (1000 * 60 * 60))
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
+
+  if (diffMins < 1) return 'À l\'instant'
+  if (diffMins < 60) return `Il y a ${diffMins} min`
+  if (diffHours < 24) return `Il y a ${diffHours}h`
+  if (diffDays < 7) return `Il y a ${diffDays}j`
+  return formatDate(d, 'fr-FR')
+}
+
 export default function ConversationItem({ session, profile, onLoad }: ConversationItemProps) {
-  const { t, i18n } = useTranslation()
+  const { t } = useTranslation()
+  const theme = useTheme()
   const lastMessage = getLastMessage(session.messages)
   const messageCount = session.messages.length
-  const locale = i18n.language || 'fr-FR'
 
   return (
     <Card
       sx={{
-        transition: 'all 0.2s',
+        border: `1px solid ${theme.palette.divider}`,
+        backgroundColor: theme.palette.mode === 'dark'
+          ? alpha(theme.palette.grey[900], 0.5)
+          : theme.palette.background.paper,
+        transition: 'all 0.2s ease-in-out',
         '&:hover': {
-          boxShadow: 4,
+          borderColor: theme.palette.primary.main,
+          boxShadow: `0 4px 20px ${alpha(theme.palette.primary.main, 0.15)}`,
           transform: 'translateY(-2px)',
         },
       }}
     >
       <CardActionArea onClick={onLoad}>
-        <CardContent>
-          {/* Profile Info */}
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <Typography variant="h6" component="div">
-                {profile?.name || 'Profil inconnu'}
-              </Typography>
-              {profile?.ragEnabled && (
-                <Chip
-                  label="RAG"
-                  size="small"
-                  color={profile.indexStatus === 'ready' ? 'success' : 'default'}
-                  sx={{ height: 20 }}
-                />
-              )}
-            </Box>
-            <Chip
-              label={t('history.messagesCount', { count: messageCount })}
-              size="small"
-              variant="outlined"
-            />
-          </Box>
-
-          {/* Profile Description */}
-          {profile?.system_context && (
-            <Typography
-              variant="caption"
-              color="text.secondary"
+        <CardContent sx={{ p: 2.5 }}>
+          {/* Header */}
+          <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
+            {/* Avatar */}
+            <Avatar
               sx={{
-                display: 'block',
-                mb: 1.5,
-                fontStyle: 'italic',
+                width: 48,
+                height: 48,
+                background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 100%)`,
+                fontSize: '1.1rem',
+                fontWeight: 600,
               }}
             >
-              {truncateText(profile.system_context, 80)}
-            </Typography>
-          )}
+              {profile?.name?.charAt(0).toUpperCase() || '?'}
+            </Avatar>
 
-          {/* Last Message */}
+            {/* Info */}
+            <Box sx={{ flex: 1, minWidth: 0 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
+                <Typography variant="h6" fontWeight={600} sx={{ lineHeight: 1.3 }}>
+                  {profile?.name || 'Profil inconnu'}
+                </Typography>
+                {profile?.ragEnabled && (
+                  <StatusBadge
+                    status={profile.indexStatus === 'ready' ? 'success' : 'default'}
+                    label="RAG"
+                    sx={{ height: 20, fontSize: '0.65rem' }}
+                  />
+                )}
+              </Box>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                  <ChatBubbleOutlineIcon sx={{ fontSize: 14, color: theme.palette.text.secondary }} />
+                  <Typography variant="caption" color="text.secondary">
+                    {t('history.messagesCount', { count: messageCount })}
+                  </Typography>
+                </Box>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                  <AccessTimeIcon sx={{ fontSize: 14, color: theme.palette.text.secondary }} />
+                  <Typography variant="caption" color="text.secondary">
+                    {formatRelativeTime(session.updatedAt)}
+                  </Typography>
+                </Box>
+              </Box>
+            </Box>
+          </Box>
+
+          {/* Last Message Preview */}
           {lastMessage && (
             <Box
               sx={{
-                bgcolor: 'grey.50',
-                p: 1.5,
-                borderRadius: 1,
-                borderLeft: 3,
-                borderColor: lastMessage.role === 'user' ? 'primary.main' : 'secondary.main',
-                mb: 1.5,
+                p: 2,
+                borderRadius: 2,
+                backgroundColor: theme.palette.mode === 'dark'
+                  ? alpha(theme.palette.grey[800], 0.5)
+                  : alpha(theme.palette.grey[100], 0.8),
+                borderLeft: `3px solid ${lastMessage.role === 'user' ? theme.palette.primary.main : theme.palette.secondary.main}`,
               }}
             >
-              <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>
-                {t('history.lastMessage')} ({lastMessage.role === 'user' ? 'Vous' : profile?.name || 'Assistant'})
+              <Typography
+                variant="caption"
+                color="text.secondary"
+                sx={{
+                  display: 'block',
+                  mb: 0.5,
+                  fontWeight: 500,
+                }}
+              >
+                {lastMessage.role === 'user' ? 'Vous' : (profile?.name || 'Assistant')}
               </Typography>
-              <Typography variant="body2" sx={{ wordBreak: 'break-word' }}>
+              <Typography
+                variant="body2"
+                sx={{
+                  wordBreak: 'break-word',
+                  color: theme.palette.text.primary,
+                }}
+              >
                 {truncateText(lastMessage.content, 150)}
               </Typography>
             </Box>
           )}
-
-          {/* Timestamps */}
-          <Box sx={{ display: 'flex', gap: 2 }}>
-            <Typography variant="caption" color="text.secondary">
-              {t('history.createdAt')}: {formatDate(session.createdAt, locale)}
-            </Typography>
-            <Typography variant="caption" color="text.secondary">
-              {t('history.updatedAt')}: {formatDate(session.updatedAt, locale)}
-            </Typography>
-          </Box>
         </CardContent>
       </CardActionArea>
     </Card>

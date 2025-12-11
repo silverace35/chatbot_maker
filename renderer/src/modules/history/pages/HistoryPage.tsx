@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react'
-import { Box, Typography, CircularProgress, Alert, Paper } from '@mui/material'
+import { Box, Typography, CircularProgress, Alert, useTheme, alpha } from '@mui/material'
+import HistoryIcon from '@mui/icons-material/History'
 import { useTranslation } from 'react-i18next'
 import { chatService } from '@/services/chat/chat.service'
 import { profileService } from '@/services/profile/profile.service'
 import type { ChatSession } from '@/services/chat/chat.service.types'
 import type { Profile } from '@/services/profile/profile.service.types'
 import ConversationList from '../components/ConversationList'
+import { EmptyState } from '@/modules/shared/components'
 
 interface HistoryPageProps {
   onLoadConversation?: (session: ChatSession, profile: Profile) => void
@@ -13,6 +15,7 @@ interface HistoryPageProps {
 
 export default function HistoryPage({ onLoadConversation }: HistoryPageProps) {
   const { t } = useTranslation()
+  const theme = useTheme()
   const [sessions, setSessions] = useState<ChatSession[]>([])
   const [profiles, setProfiles] = useState<Profile[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -62,7 +65,7 @@ export default function HistoryPage({ onLoadConversation }: HistoryPageProps) {
           gap: 2,
         }}
       >
-        <CircularProgress />
+        <CircularProgress size={40} />
         <Typography variant="body2" color="text.secondary">
           {t('history.loading')}
         </Typography>
@@ -73,7 +76,11 @@ export default function HistoryPage({ onLoadConversation }: HistoryPageProps) {
   if (error) {
     return (
       <Box sx={{ p: 3 }}>
-        <Alert severity="error" onClose={() => setError(null)}>
+        <Alert
+          severity="error"
+          onClose={() => setError(null)}
+          sx={{ borderRadius: 2 }}
+        >
           {error}
         </Alert>
       </Box>
@@ -90,44 +97,43 @@ export default function HistoryPage({ onLoadConversation }: HistoryPageProps) {
       }}
     >
       {/* Header */}
-      <Paper
-        elevation={0}
+      <Box
         sx={{
           p: 3,
-          borderBottom: 1,
-          borderColor: 'divider',
+          borderBottom: `1px solid ${theme.palette.divider}`,
+          backgroundColor: alpha(theme.palette.background.paper, 0.5),
+          backdropFilter: 'blur(10px)',
         }}
       >
-        <Typography variant="h5" component="h1" gutterBottom>
-          {t('history.title')}
-        </Typography>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
+          <Box
+            sx={{
+              p: 1,
+              borderRadius: 2,
+              background: `linear-gradient(135deg, ${alpha(theme.palette.primary.main, 0.2)} 0%, ${alpha(theme.palette.secondary.main, 0.2)} 100%)`,
+            }}
+          >
+            <HistoryIcon sx={{ color: theme.palette.primary.main }} />
+          </Box>
+          <Typography variant="h4" fontWeight={700}>
+            {t('history.title')}
+          </Typography>
+        </Box>
         <Typography variant="body2" color="text.secondary">
           {sessions.length === 0
             ? t('history.emptyStateDescription')
             : t('history.conversationsCount', { count: sessions.length })}
         </Typography>
-      </Paper>
+      </Box>
 
       {/* Conversation List */}
       <Box sx={{ flexGrow: 1, overflow: 'auto', p: 3 }}>
         {sessions.length === 0 ? (
-          <Box
-            sx={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              height: '100%',
-              gap: 2,
-            }}
-          >
-            <Typography variant="h6" color="text.secondary">
-              {t('history.emptyState')}
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              {t('history.emptyStateDescription')}
-            </Typography>
-          </Box>
+          <EmptyState
+            icon={<HistoryIcon />}
+            title={t('history.emptyState')}
+            description={t('history.emptyStateDescription')}
+          />
         ) : (
           <ConversationList
             sessions={sessions}

@@ -7,11 +7,15 @@ import {
   TextField,
   Button,
   Box,
-  FormControlLabel,
-  Checkbox,
+  Switch,
   Typography,
-  Divider,
+  Avatar,
+  useTheme,
+  alpha,
+  CircularProgress,
 } from '@mui/material'
+import SmartToyIcon from '@mui/icons-material/SmartToy'
+import StorageIcon from '@mui/icons-material/Storage'
 import type { ProfileDialogProps } from './ProfileDialog.types'
 
 export default function ProfileDialog({
@@ -21,6 +25,7 @@ export default function ProfileDialog({
   loading = false,
   profile = null,
 }: ProfileDialogProps) {
+  const theme = useTheme()
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
   const [systemContext, setSystemContext] = useState('')
@@ -50,12 +55,9 @@ export default function ProfileDialog({
         description: description.trim() || undefined,
         system_context: systemContext.trim(),
         ragEnabled,
-        // Utiliser directement le modèle d'embedding Ollama par défaut
-        // (doit correspondre à EMBEDDING_MODEL côté backend, ex: nomic-embed-text)
         embeddingModelId: ragEnabled ? 'nomic-embed-text' : undefined,
         ragSettings: ragEnabled ? { topK: 5, similarityThreshold: 0.7 } : undefined,
       })
-      // Reset form
       setName('')
       setDescription('')
       setSystemContext('')
@@ -69,12 +71,45 @@ export default function ProfileDialog({
     }
   }
 
-  return (
-    <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
+return (
+    <Dialog
+      open={open}
+      onClose={handleClose}
+      maxWidth="sm"
+      fullWidth
+      slotProps={{
+        paper: {
+          sx: {
+            borderRadius: 3,
+            backgroundColor: theme.palette.background.paper,
+          },
+        },
+      }}
+    >
       <form onSubmit={handleSubmit}>
-        <DialogTitle>{profile ? 'Modifier le profil' : 'Créer un nouveau profil'}</DialogTitle>
-        <DialogContent>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
+        <DialogTitle sx={{ pb: 1 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <Avatar
+              sx={{
+                width: 48,
+                height: 48,
+                background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 100%)`,
+              }}
+            >
+              {name ? name.charAt(0).toUpperCase() : <SmartToyIcon />}
+            </Avatar>
+            <Box>
+              <Typography variant="h5" fontWeight={600}>
+                {profile ? 'Modifier le profil' : 'Nouveau profil'}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                {profile ? 'Modifiez les paramètres de votre assistant' : 'Créez un nouvel assistant personnalisé'}
+              </Typography>
+            </Box>
+          </Box>
+        </DialogTitle>
+        <DialogContent sx={{ pt: 3 }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
             <TextField
               label="Nom du profil"
               value={name}
@@ -84,6 +119,11 @@ export default function ProfileDialog({
               autoFocus
               disabled={loading}
               placeholder="Ex: Assistant Python, Coach sportif..."
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  borderRadius: 2,
+                },
+              }}
             />
             <TextField
               label="Description (optionnel)"
@@ -92,6 +132,11 @@ export default function ProfileDialog({
               fullWidth
               disabled={loading}
               placeholder="Ex: Expert en programmation Python"
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  borderRadius: 2,
+                },
+              }}
             />
             <TextField
               label="Contexte système"
@@ -100,44 +145,84 @@ export default function ProfileDialog({
               required
               fullWidth
               multiline
-              rows={4}
+              rows={5}
               disabled={loading}
               placeholder="Ex: Tu es un expert Python. Réponds toujours en donnant des exemples de code clairs et commentés."
               helperText="Ce texte définit le comportement et la personnalité de l'assistant"
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  borderRadius: 2,
+                },
+              }}
             />
             
-            <Divider />
-            
-            <Box>
-              <Typography variant="subtitle2" gutterBottom>
-                RAG (Retrieval Augmented Generation)
-              </Typography>
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={ragEnabled}
-                    onChange={(e) => setRagEnabled(e.target.checked)}
-                    disabled={loading}
+            {/* RAG Section */}
+            <Box
+              sx={{
+                p: 2,
+                borderRadius: 2,
+                backgroundColor: ragEnabled
+                  ? alpha(theme.palette.secondary.main, 0.1)
+                  : alpha(theme.palette.grey[500], 0.1),
+                border: `1px solid ${ragEnabled 
+                  ? alpha(theme.palette.secondary.main, 0.3)
+                  : theme.palette.divider}`,
+                transition: 'all 0.2s ease',
+              }}
+            >
+              <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
+                <Box
+                  sx={{
+                    p: 1,
+                    borderRadius: 1.5,
+                    backgroundColor: ragEnabled
+                      ? alpha(theme.palette.secondary.main, 0.2)
+                      : alpha(theme.palette.grey[500], 0.2),
+                  }}
+                >
+                  <StorageIcon
+                    sx={{
+                      color: ragEnabled ? theme.palette.secondary.main : theme.palette.text.secondary,
+                      fontSize: 24,
+                    }}
                   />
-                }
-                label="Activer la base de connaissance"
-              />
-              <Typography variant="caption" color="text.secondary" display="block" sx={{ ml: 4 }}>
-                Permet d'ajouter des fichiers pour enrichir les réponses de l'assistant
-              </Typography>
+                </Box>
+                <Box sx={{ flex: 1 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <Typography variant="subtitle1" fontWeight={600}>
+                      Base de connaissance (RAG)
+                    </Typography>
+                    <Switch
+                      checked={ragEnabled}
+                      onChange={(e) => setRagEnabled(e.target.checked)}
+                      disabled={loading}
+                      color="secondary"
+                    />
+                  </Box>
+                  <Typography variant="body2" color="text.secondary">
+                    Permet d'ajouter des fichiers pour enrichir les réponses de l'assistant avec vos propres données.
+                  </Typography>
+                </Box>
+              </Box>
             </Box>
           </Box>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={handleClose} disabled={loading}>
+        <DialogActions sx={{ p: 2.5, pt: 1.5 }}>
+          <Button
+            onClick={handleClose}
+            disabled={loading}
+            sx={{ borderRadius: 2, px: 3 }}
+          >
             Annuler
           </Button>
           <Button
             type="submit"
             variant="contained"
             disabled={loading || !name.trim() || !systemContext.trim()}
+            startIcon={loading ? <CircularProgress size={16} color="inherit" /> : null}
+            sx={{ borderRadius: 2, px: 3 }}
           >
-            {profile ? 'Enregistrer' : 'Créer'}
+            {profile ? 'Enregistrer' : 'Créer le profil'}
           </Button>
         </DialogActions>
       </form>
