@@ -11,10 +11,50 @@
     "dev:all": "concurrently -k \"npm:dev:renderer\" \"npm:dev:backend\" \"npm:dev:electron\"",
     "build:renderer": "cd renderer && npm run build",
     "build:backend": "cd backend && npm run build",
+    "build:docker:prepare": "powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/prepare-docker-build.ps1",
+    "build:all": "npm run build:renderer && npm run build:backend && npm run build:docker:prepare",
+    "dist": "npm run build:all && electron-builder -w nsis",
     "start": "electron ."
+  },
+  "build": {
+    "appId": "com.chatbot.maker",
+    "productName": "Chatbot Maker",
+    "files": [
+      "electron/**/*",
+      "backend/dist/**/*",
+      "renderer/dist/**/*",
+      "scripts/**/*"
+    ],
+    "extraResources": [
+      {
+        "from": "build/docker",
+        "to": "docker",
+        "filter": ["**/*"]
+      },
+      {
+        "from": "scripts",
+        "to": "scripts",
+        "filter": ["**/*.ps1"]
+      }
+    ],
+    "directories": {
+      "output": "dist_electron"
+    },
+    "win": {
+      "target": "nsis",
+      "requestedExecutionLevel": "requireAdministrator",
+      "signAndEditExecutable": false,
+      "signDlls": false,
+      "rfc3161TimeStampServer": null
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    }
   },
   "devDependencies": {
     "concurrently": "^9.0.0",
-    "electron": "^39.2.6"
+    "electron": "^39.2.6",
+    "electron-builder": "^25.0.0"
   }
 }
