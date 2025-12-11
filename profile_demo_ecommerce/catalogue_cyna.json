@@ -1,0 +1,401 @@
+{
+  "segments": [
+    { "code": "PME", "nom": "Petites et moyennes entreprises" },
+    { "code": "ETI", "nom": "Entreprises de taille intermédiaire" },
+    { "code": "MSP", "nom": "Managed Service Providers / Infogérants" }
+  ],
+  "services": [
+    {
+      "service_code": "S-AUDIT-STD",
+      "nom": "Audit de sécurité standard",
+      "categorie": "PREVENTION",
+      "type_intervention": "ONE_SHOT",
+      "description_courte": "Audit global de sécurité pour évaluer la posture du SI.",
+      "description_detaillee": "Audit de sécurité global couvrant politiques, processus et configurations afin d'évaluer la posture de sécurité du système d'information.",
+      "livrables": [
+        "Rapport d'audit détaillé (PDF)",
+        "Cartographie des risques",
+        "Plan d'actions priorisé"
+      ],
+      "segments_cibles": ["PME", "ETI"],
+      "sla_niveau": null,
+      "peut_etre_vendu_seul": true
+    },
+    {
+      "service_code": "S-AUDIT-AV",
+      "nom": "Audit de sécurité avancé / 360°",
+      "categorie": "PREVENTION",
+      "type_intervention": "ONE_SHOT",
+      "description_courte": "Audit 360° incluant revue organisationnelle et analyse de logs.",
+      "description_detaillee": "Audit de sécurité avancé avec revue organisationnelle, analyse de logs et interviews métiers (RSSI, DSI).",
+      "livrables": [
+        "Rapport d'audit 360°",
+        "Synthèse management",
+        "Plan d'actions détaillé"
+      ],
+      "segments_cibles": ["PME", "ETI"],
+      "sla_niveau": null,
+      "peut_etre_vendu_seul": true
+    },
+    {
+      "service_code": "S-PENT-WEB",
+      "nom": "Pentest applicatif Web",
+      "categorie": "PREVENTION",
+      "type_intervention": "ONE_SHOT",
+      "description_courte": "Pentest sur application web exposée.",
+      "description_detaillee": "Simulation d'attaques (black/grey box) sur une application web exposée, avec rapport de vulnérabilités et recommandations.",
+      "livrables": [
+        "Rapport de vulnérabilités",
+        "POC d'exploitation",
+        "Recommandations de remédiation"
+      ],
+      "segments_cibles": ["PME", "ETI"],
+      "sla_niveau": null,
+      "peut_etre_vendu_seul": true
+    },
+    {
+      "service_code": "S-PENT-INFRA",
+      "nom": "Pentest infrastructure",
+      "categorie": "PREVENTION",
+      "type_intervention": "ONE_SHOT",
+      "description_courte": "Pentest de l'infrastructure (interne/externe, AD, VPN...).",
+      "description_detaillee": "Test de robustesse de l'infrastructure interne et/ou externe : Active Directory, VPN, pare-feux, exposition internet, etc.",
+      "livrables": [
+        "Rapport de vulnérabilités infra",
+        "Synthèse risques",
+        "Recommandations détaillées"
+      ],
+      "segments_cibles": ["PME", "ETI"],
+      "sla_niveau": null,
+      "peut_etre_vendu_seul": true
+    },
+    {
+      "service_code": "S-SOC-PME",
+      "nom": "SOC managé 24/7 PME / ETI",
+      "categorie": "PROTECTION",
+      "type_intervention": "RECURRENT",
+      "description_courte": "Supervision 24/7 de l'environnement de travail (EDR + Digital Workplace).",
+      "description_detaillee": "Supervision 24/7 de l'environnement de travail (postes, serveurs, mobiles, utilisateurs) via EDR et Digital Workplace, avec détection, analyse et réponse aux incidents.",
+      "livrables": [
+        "Traitement des alertes",
+        "Rapports mensuels",
+        "Tableau de bord via plateforme"
+      ],
+      "segments_cibles": ["PME", "ETI"],
+      "sla_niveau": "24/7",
+      "peut_etre_vendu_seul": false
+    },
+    {
+      "service_code": "S-SOC-MSP",
+      "nom": "SOC 24/7 pour MSP",
+      "categorie": "PROTECTION_PLATEFORME",
+      "type_intervention": "RECURRENT",
+      "description_courte": "SOC managé multi-tenant pour MSP.",
+      "description_detaillee": "SOC 24/7 pour MSP avec modèle multi-tenant, intégration EDR/Digital Workplace et console MSP dédiée.",
+      "livrables": [
+        "Traitement des alertes multi-clients",
+        "Rapports consolidés MSP",
+        "Accès console MSP"
+      ],
+      "segments_cibles": ["MSP"],
+      "sla_niveau": "24/7",
+      "peut_etre_vendu_seul": false
+    },
+    {
+      "service_code": "S-CERT-IR",
+      "nom": "Réponse à incident 24/7",
+      "categorie": "REPONSE",
+      "type_intervention": "RECURRENT",
+      "description_courte": "Réponse à incident et intervention CERT 24/7.",
+      "description_detaillee": "Investigation, confinement, éradication, remédiation et post-mortem en cas d'incident de sécurité, avec disponibilité 24/7 selon le contrat.",
+      "livrables": [
+        "Rapport d'incident",
+        "Plan de remédiation",
+        "Compte-rendu post-mortem"
+      ],
+      "segments_cibles": ["PME", "ETI", "MSP"],
+      "sla_niveau": "24/7",
+      "peut_etre_vendu_seul": true
+    },
+    {
+      "service_code": "S-CERT-PREP",
+      "nom": "Préparation & conseil CERT",
+      "categorie": "PREVENTION_ACCOMPAGNEMENT",
+      "type_intervention": "RECURRENT",
+      "description_courte": "Préparation à la gestion de crise et conseil CERT.",
+      "description_detaillee": "Revues de crise, mise à jour de runbooks, briefings menaces et rapports trimestriels CERT.",
+      "livrables": [
+        "Runbooks à jour",
+        "Rapports trimestriels CERT",
+        "Synthèses menaces"
+      ],
+      "segments_cibles": ["PME", "ETI", "MSP"],
+      "sla_niveau": "Trimestriel",
+      "peut_etre_vendu_seul": true
+    },
+    {
+      "service_code": "S-PLATFORM-MSP",
+      "nom": "Plateforme MSP Cyna",
+      "categorie": "PLATEFORME",
+      "type_intervention": "RECURRENT",
+      "description_courte": "Console MSP multi-tenant pour la cybersécurité.",
+      "description_detaillee": "Console multi-tenant pour MSP : déploiement en 2 clics, gestion des clients, rapports et vulnérabilités.",
+      "livrables": [
+        "Accès plateforme MSP",
+        "Rapports multi-clients",
+        "Tableaux de bord vulnérabilités"
+      ],
+      "segments_cibles": ["MSP"],
+      "sla_niveau": "24/7",
+      "peut_etre_vendu_seul": false
+    },
+    {
+      "service_code": "S-SUBV-ASSIST",
+      "nom": "Accompagnement subventions cyber",
+      "categorie": "ACCOMPAGNEMENT",
+      "type_intervention": "ONE_SHOT",
+      "description_courte": "Accompagnement pour mobiliser les financements publics/para-publics.",
+      "description_detaillee": "Accompagnement pour mobiliser les financements publics/para-publics (Diag Cyber, Chèque Cyber, etc.).",
+      "livrables": [
+        "Dossier de subvention préparé",
+        "Conseils sur les dispositifs disponibles"
+      ],
+      "segments_cibles": ["PME", "ETI"],
+      "sla_niveau": null,
+      "peut_etre_vendu_seul": true
+    },
+    {
+      "service_code": "S-TRAIN-AWARE",
+      "nom": "Sensibilisation & formation utilisateurs",
+      "categorie": "ACCOMPAGNEMENT",
+      "type_intervention": "RECURRENT",
+      "description_courte": "Sessions de formation et sensibilisation à la cybersécurité.",
+      "description_detaillee": "Sessions de formation (présentiel/visio), contenus de sensibilisation et simulateur de phishing pour les utilisateurs.",
+      "livrables": [
+        "Supports de formation",
+        "Rapports de campagne de phishing",
+        "Attestations de participation"
+      ],
+      "segments_cibles": ["PME", "ETI", "MSP"],
+      "sla_niveau": null,
+      "peut_etre_vendu_seul": true
+    }
+  ],
+  "products": [
+    {
+      "product_code": "P-PME-AUDIT-START",
+      "nom_marketing": "Audit Flash PME < 50 salariés",
+      "segment_cible": ["PME"],
+      "description_marketing": "Audit de sécurité flash pour PME de moins de 50 salariés, avec options de pentest et d'accompagnement subventions.",
+      "type_facturation": "ONE_SHOT",
+      "services_inclus": [
+        { "service_code": "S-AUDIT-STD", "perimetre": "Périmètre réduit pour PME < 50 salariés" }
+      ],
+      "options_service_codes": ["S-SUBV-ASSIST"],
+      "a_partir_de_prix": 2500,
+      "devise": "EUR",
+      "afficher_prix_public": true
+    },
+    {
+      "product_code": "P-PME-AUDIT-360",
+      "nom_marketing": "Audit 360° SI",
+      "segment_cible": ["PME", "ETI"],
+      "description_marketing": "Audit complet 360° du système d'information pour PME et ETI.",
+      "type_facturation": "ONE_SHOT",
+      "services_inclus": [
+        { "service_code": "S-AUDIT-AV", "perimetre": "Audit 360° du SI" }
+      ],
+      "options_service_codes": ["S-TRAIN-AWARE", "S-SUBV-ASSIST"],
+      "a_partir_de_prix": 6500,
+      "devise": "EUR",
+      "afficher_prix_public": true
+    },
+    {
+      "product_code": "P-PME-PENT-WEB",
+      "nom_marketing": "Pentest application Web",
+      "segment_cible": ["PME", "ETI"],
+      "description_marketing": "Pentest complet d'une application web (S/M/L).",
+      "type_facturation": "ONE_SHOT",
+      "services_inclus": [
+        { "service_code": "S-PENT-WEB", "perimetre": "Pentest d'une application web exposée" }
+      ],
+      "a_partir_de_prix": 4000,
+      "devise": "EUR",
+      "afficher_prix_public": true
+    },
+    {
+      "product_code": "P-PME-SOC-ESSENTIEL",
+      "nom_marketing": "SOC 24/7 Essentiel (EDR + Workplace)",
+      "segment_cible": ["PME", "ETI"],
+      "description_marketing": "Offre SOC 24/7 Essentiel pour PME/ETI avec EDR + Digital Workplace.",
+      "type_facturation": "SUBSCRIPTION",
+      "services_inclus": [
+        { "service_code": "S-SOC-PME", "perimetre": "Surveillance EDR + Digital Workplace" },
+        { "service_code": "S-CERT-IR", "perimetre": "Mode best effort, facturation à l'incident hors pack" }
+      ],
+      "a_partir_de_prix": 380,
+      "devise": "EUR",
+      "afficher_prix_public": true
+    },
+    {
+      "product_code": "P-PME-SOC-PREMIUM",
+      "nom_marketing": "SOC 24/7 Premium + CERT incluse",
+      "segment_cible": ["PME", "ETI"],
+      "description_marketing": "Offre SOC Premium avec CERT incluse et préparation à la crise.",
+      "type_facturation": "SUBSCRIPTION",
+      "services_inclus": [
+        { "service_code": "S-SOC-PME", "perimetre": "Surveillance EDR + Digital Workplace" },
+        { "service_code": "S-CERT-IR", "perimetre": "Incidents inclus jusqu'à X h/an" },
+        { "service_code": "S-CERT-PREP", "perimetre": "Revue annuelle de crise" }
+      ],
+      "a_partir_de_prix": 1450,
+      "devise": "EUR",
+      "afficher_prix_public": false
+    },
+    {
+      "product_code": "P-PME-INCIDENT-PACK",
+      "nom_marketing": "Pack réponse à incident 24/7",
+      "segment_cible": ["PME", "ETI"],
+      "description_marketing": "Packs d'heures CERT prépayées pour réponse à incident 24/7.",
+      "type_facturation": "ONE_SHOT",
+      "services_inclus": [
+        { "service_code": "S-CERT-IR", "perimetre": "Crédit d'heures CERT utilisable 24/7" }
+      ],
+      "a_partir_de_prix": 6000,
+      "devise": "EUR",
+      "afficher_prix_public": true
+    },
+    {
+      "product_code": "P-PME-PACK-START",
+      "nom_marketing": "Pack Cyber Start (Audit + SOC Essentiel)",
+      "segment_cible": ["PME"],
+      "description_marketing": "Pack combinant un audit flash et 12 mois de SOC Essentiel.",
+      "type_facturation": "MIX",
+      "services_inclus": [
+        { "service_code": "S-AUDIT-STD", "perimetre": "Audit Flash" },
+        { "service_code": "S-SOC-PME", "perimetre": "12 mois de SOC Essentiel" }
+      ],
+      "options_service_codes": ["S-SUBV-ASSIST"],
+      "a_partir_de_prix": 2200,
+      "devise": "EUR",
+      "afficher_prix_public": false
+    },
+    {
+      "product_code": "P-MSP-SOC-START",
+      "nom_marketing": "SOC 24/7 MSP Starter",
+      "segment_cible": ["MSP"],
+      "description_marketing": "Offre SOC 24/7 wholesale pour MSP démarrant avec 1–10 clients.",
+      "type_facturation": "SUBSCRIPTION",
+      "services_inclus": [
+        { "service_code": "S-SOC-MSP", "perimetre": "SOC multi-tenant pour MSP" },
+        { "service_code": "S-PLATFORM-MSP", "perimetre": "Plateforme MSP incluse" }
+      ],
+      "a_partir_de_prix": 600,
+      "devise": "EUR",
+      "afficher_prix_public": true
+    },
+    {
+      "product_code": "P-MSP-SOC-GROWTH",
+      "nom_marketing": "SOC 24/7 MSP Growth",
+      "segment_cible": ["MSP"],
+      "description_marketing": "Offre SOC 24/7 pour MSP en phase de croissance (11–50 clients).",
+      "type_facturation": "SUBSCRIPTION",
+      "services_inclus": [
+        { "service_code": "S-SOC-MSP", "perimetre": "SOC multi-tenant pour MSP" },
+        { "service_code": "S-PLATFORM-MSP", "perimetre": "Plateforme MSP incluse" }
+      ],
+      "a_partir_de_prix": 2510,
+      "devise": "EUR",
+      "afficher_prix_public": true
+    },
+    {
+      "product_code": "P-MSP-SOC-ELITE",
+      "nom_marketing": "SOC 24/7 MSP Elite",
+      "segment_cible": ["MSP"],
+      "description_marketing": "Offre SOC 24/7 pour gros MSP / intégrateurs (> 1000 postes).",
+      "type_facturation": "SUBSCRIPTION",
+      "services_inclus": [
+        { "service_code": "S-SOC-MSP", "perimetre": "SOC multi-tenant pour MSP" },
+        { "service_code": "S-PLATFORM-MSP", "perimetre": "Plateforme MSP incluse" }
+      ],
+      "a_partir_de_prix": 8000,
+      "devise": "EUR",
+      "afficher_prix_public": false
+    },
+    {
+      "product_code": "P-MSP-SOC-CERT",
+      "nom_marketing": "SOC + CERT pack MSP",
+      "segment_cible": ["MSP"],
+      "description_marketing": "Pack combinant SOC MSP et crédit d'heures CERT mutualisé.",
+      "type_facturation": "SUBSCRIPTION",
+      "services_inclus": [
+        { "service_code": "S-SOC-MSP", "perimetre": "SOC multi-tenant MSP" },
+        { "service_code": "S-CERT-IR", "perimetre": "Crédit d'heures CERT mutualisé" },
+        { "service_code": "S-CERT-PREP", "perimetre": "Revue annuelle multi-client" }
+      ],
+      "a_partir_de_prix": 1500,
+      "devise": "EUR",
+      "afficher_prix_public": true
+    },
+    {
+      "product_code": "P-MSP-PLATFORM-ONLY",
+      "nom_marketing": "Plateforme MSP seule",
+      "segment_cible": ["MSP"],
+      "description_marketing": "Accès à la plateforme MSP seule, réservée à certains partenariats.",
+      "type_facturation": "SUBSCRIPTION",
+      "services_inclus": [
+        { "service_code": "S-PLATFORM-MSP", "perimetre": "Plateforme MSP" }
+      ],
+      "a_partir_de_prix": 500,
+      "devise": "EUR",
+      "afficher_prix_public": false
+    }
+  ],
+  "plans_tarifaires": [
+    { "plan_code": "PLAN-AUDIT-START-50", "product_code": "P-PME-AUDIT-START", "nom": "Audit Flash PME - 50 utilisateurs", "description_courte": "Jusqu'à 50 utilisateurs", "min_postes": 1, "max_postes": 50, "prix_mensuel_ht": 2500, "duree_engagement_mois": 0, "paiement": "ONE_SHOT", "type_prix": "FORFAIT" },
+    { "plan_code": "PLAN-AUDIT-START-150", "product_code": "P-PME-AUDIT-START", "nom": "Audit Flash PME - 150 utilisateurs", "description_courte": "Jusqu'à 150 utilisateurs", "min_postes": 51, "max_postes": 150, "prix_mensuel_ht": 3900, "duree_engagement_mois": 0, "paiement": "ONE_SHOT", "type_prix": "FORFAIT" },
+    { "plan_code": "PLAN-AUDIT-360-250", "product_code": "P-PME-AUDIT-360", "nom": "Audit 360° SI < 250 users", "description_courte": "Moins de 250 utilisateurs", "min_postes": 1, "max_postes": 250, "prix_mensuel_ht": 6500, "duree_engagement_mois": 0, "paiement": "ONE_SHOT", "type_prix": "FORFAIT" },
+    { "plan_code": "PLAN-AUDIT-360-1000", "product_code": "P-PME-AUDIT-360", "nom": "Audit 360° SI < 1000 users", "description_courte": "Moins de 1000 utilisateurs", "min_postes": 251, "max_postes": 1000, "prix_mensuel_ht": 11500, "duree_engagement_mois": 0, "paiement": "ONE_SHOT", "type_prix": "FORFAIT" },
+    { "plan_code": "PLAN-PENT-WEB-S", "product_code": "P-PME-PENT-WEB", "nom": "Pentest Web S", "description_courte": "Appli simple (<= 15 écrans)", "min_postes": 1, "max_postes": 1, "prix_mensuel_ht": 4000, "duree_engagement_mois": 0, "paiement": "ONE_SHOT", "type_prix": "FORFAIT" },
+    { "plan_code": "PLAN-PENT-WEB-M", "product_code": "P-PME-PENT-WEB", "nom": "Pentest Web M", "description_courte": "Appli moyenne", "min_postes": 1, "max_postes": 1, "prix_mensuel_ht": 6500, "duree_engagement_mois": 0, "paiement": "ONE_SHOT", "type_prix": "FORFAIT" },
+    { "plan_code": "PLAN-PENT-WEB-L", "product_code": "P-PME-PENT-WEB", "nom": "Pentest Web L", "description_courte": "Appli critique", "min_postes": 1, "max_postes": 1, "prix_mensuel_ht": 9000, "duree_engagement_mois": 0, "paiement": "ONE_SHOT", "type_prix": "FORFAIT" },
+    { "plan_code": "PLAN-SOC-ESS-50", "product_code": "P-PME-SOC-ESSENTIEL", "nom": "SOC Essentiel 20-50 postes", "description_courte": "20 à 50 postes", "min_postes": 20, "max_postes": 50, "prix_mensuel_ht": 19, "duree_engagement_mois": 12, "paiement": "MENSUEL", "type_prix": "PAR_POSTE" },
+    { "plan_code": "PLAN-SOC-ESS-200", "product_code": "P-PME-SOC-ESSENTIEL", "nom": "SOC Essentiel 51-200 postes", "description_courte": "51 à 200 postes", "min_postes": 51, "max_postes": 200, "prix_mensuel_ht": 17, "duree_engagement_mois": 12, "paiement": "MENSUEL", "type_prix": "PAR_POSTE" },
+    { "plan_code": "PLAN-SOC-ESS-500", "product_code": "P-PME-SOC-ESSENTIEL", "nom": "SOC Essentiel 201-500 postes", "description_courte": "201 à 500 postes", "min_postes": 201, "max_postes": 500, "prix_mensuel_ht": 15, "duree_engagement_mois": 12, "paiement": "MENSUEL", "type_prix": "PAR_POSTE" },
+    { "plan_code": "PLAN-SOC-PREM-100", "product_code": "P-PME-SOC-PREMIUM", "nom": "SOC Premium 50-100 postes", "description_courte": "50 à 100 postes, CERT 40h/an inclus", "min_postes": 50, "max_postes": 100, "prix_mensuel_ht": 29, "duree_engagement_mois": 12, "paiement": "MENSUEL", "type_prix": "PAR_POSTE" },
+    { "plan_code": "PLAN-SOC-PREM-300", "product_code": "P-PME-SOC-PREMIUM", "nom": "SOC Premium 101-300 postes", "description_courte": "101 à 300 postes, CERT 60h/an inclus", "min_postes": 101, "max_postes": 300, "prix_mensuel_ht": 26, "duree_engagement_mois": 12, "paiement": "MENSUEL", "type_prix": "PAR_POSTE" },
+    { "plan_code": "PLAN-INCIDENT-20H", "product_code": "P-PME-INCIDENT-PACK", "nom": "Pack incident 20h", "description_courte": "20 heures CERT prépayées", "min_postes": 0, "max_postes": 0, "prix_mensuel_ht": 6000, "duree_engagement_mois": 0, "paiement": "ONE_SHOT", "type_prix": "PAR_HEURE" },
+    { "plan_code": "PLAN-INCIDENT-50H", "product_code": "P-PME-INCIDENT-PACK", "nom": "Pack incident 50h", "description_courte": "50 heures CERT prépayées", "min_postes": 0, "max_postes": 0, "prix_mensuel_ht": 13500, "duree_engagement_mois": 0, "paiement": "ONE_SHOT", "type_prix": "PAR_HEURE" },
+    { "plan_code": "PLAN-MSP-SOC-START", "product_code": "P-MSP-SOC-START", "nom": "SOC MSP Starter 50-250 postes", "description_courte": "50 à 250 postes sous gestion", "min_postes": 50, "max_postes": 250, "prix_mensuel_ht": 12, "duree_engagement_mois": 12, "paiement": "MENSUEL", "type_prix": "PAR_POSTE" },
+    { "plan_code": "PLAN-MSP-SOC-GROWTH", "product_code": "P-MSP-SOC-GROWTH", "nom": "SOC MSP Growth 251-1000 postes", "description_courte": "251 à 1000 postes sous gestion", "min_postes": 251, "max_postes": 1000, "prix_mensuel_ht": 10, "duree_engagement_mois": 12, "paiement": "MENSUEL", "type_prix": "PAR_POSTE" },
+    { "plan_code": "PLAN-MSP-SOC-ELITE", "product_code": "P-MSP-SOC-ELITE", "nom": "SOC MSP Elite > 1000 postes", "description_courte": "> 1000 postes, contrat 36 mois", "min_postes": 1000, "max_postes": null, "prix_mensuel_ht": 8, "duree_engagement_mois": 36, "paiement": "MENSUEL", "type_prix": "PAR_POSTE" },
+    { "plan_code": "PLAN-MSP-SOC-CERT-PLUS", "product_code": "P-MSP-SOC-CERT", "nom": "SOC + CERT MSP Plus", "description_courte": "Base 10 €/poste/mois avec 100h CERT/an", "min_postes": 150, "max_postes": null, "prix_mensuel_ht": 10, "duree_engagement_mois": 12, "paiement": "MENSUEL", "type_prix": "PAR_POSTE" }
+  ],
+  "options": [
+    {
+      "option_code": "OPT-PENT-MINI",
+      "nom": "Mini-pentest externe 2 IP",
+      "description": "Pentest externe simplifié sur 2 adresses IP.",
+      "prix_mensuel_ht": null,
+      "prix_one_shot_ht": 1200,
+      "compatible_avec_product_codes": ["P-PME-AUDIT-START"]
+    },
+    {
+      "option_code": "OPT-SOC-MAIL-SEC",
+      "nom": "Antispam avancé",
+      "description": "Ajout d'une protection antispam avancée pour les boîtes mail.",
+      "prix_mensuel_ht": 3,
+      "prix_one_shot_ht": null,
+      "compatible_avec_product_codes": ["P-PME-SOC-ESSENTIEL", "P-PME-SOC-PREMIUM"]
+    },
+    {
+      "option_code": "OPT-SOC-REPORT-COMEX",
+      "nom": "Rapport trimestriel Comex",
+      "description": "Rapport de synthèse trimestriel pour les instances de direction.",
+      "prix_mensuel_ht": null,
+      "prix_one_shot_ht": 400,
+      "compatible_avec_product_codes": ["P-PME-SOC-ESSENTIEL", "P-PME-SOC-PREMIUM"]
+    }
+  ]
+}
+

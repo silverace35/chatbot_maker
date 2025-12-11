@@ -1,0 +1,202 @@
+{
+  "categories": [
+    {
+      "code": "GENERAL",
+      "titre": "Questions générales sur Cyna et le site",
+      "faqs": [
+        {
+          "id": "gen-1",
+          "question": "Qui est Cyna et que propose votre site e-commerce ?",
+          "reponse": "Cyna est un pure player en cybersécurité pour PME, ETI et MSP. Notre site e-commerce vous permet de découvrir et de commander des services de cybersécurité clés : audits de sécurité, pentests, SOC managé 24/7, réponse à incident (CERT), sensibilisation, ainsi que des offres dédiées aux MSP (plateforme multi-tenant, packs wholesale, etc.). Toutes les offres présentées ont pour but de renforcer la protection de votre système d'information et de faciliter la gestion de votre sécurité au quotidien."
+        },
+        {
+          "id": "gen-2",
+          "question": "À qui s'adressent vos offres (PME, ETI, MSP) ?",
+          "reponse": "Nos offres sont conçues pour trois grands types d'acteurs :\n- PME : entreprises d'environ 10 à 250 salariés, avec des moyens IT limités et rarement un service cybersécurité dédié ;\n- ETI : entreprises plus grandes, jusqu'à quelques milliers de collaborateurs, avec des besoins plus complexes et souvent une DSI structurée ;\n- MSP / Infogérants : prestataires qui gèrent l'informatique de plusieurs clients (postes, serveurs, réseaux, sauvegardes…) et souhaitent proposer de la cybersécurité managée à leur portefeuille."
+        },
+        {
+          "id": "gen-3",
+          "question": "Je ne maîtrise pas bien la cybersécurité, comment savoir par où commencer ?",
+          "reponse": "Si vous débutez, le plus simple est souvent de démarrer par un audit ou un pack d'entrée de gamme :\n- Pour une PME, l'offre \"Audit Flash PME < 50 salariés\" permet d'avoir une première vision des risques et d'un plan d'actions clair ;\n- Vous pouvez ensuite compléter avec un abonnement SOC Essentiel pour mettre en place une surveillance 24/7 ;\n- Si vous avez des contraintes réglementaires ou clients (ETI, secteurs sensibles), les offres \"Audit 360° SI\" et \"SOC Premium + CERT\" sont plus adaptées.\n\nEn cas de doute, nous recommandons de prendre contact via le formulaire ou de demander un rendez-vous conseil (gratuit) pour cadrer votre besoin."
+        },
+        {
+          "id": "gen-4",
+          "question": "Puis-je utiliser ce site si je suis un particulier ?",
+          "reponse": "Non. Les offres Cyna sont destinées exclusivement à un public professionnel : PME, ETI et prestataires MSP/infogérants. Nous ne proposons pas de services aux particuliers sur ce site e-commerce."
+        },
+        {
+          "id": "gen-5",
+          "question": "Proposez-vous des démonstrations ou des études de cas clients ?",
+          "reponse": "Oui. Nous pouvons partager des cas d'usage et des retours d'expérience anonymisés pour illustrer comment nos clients ont amélioré leur sécurité (avant/après). Vous pouvez également demander une démonstration de la plateforme SOC/MSP ou un échange avec nos équipes pour voir des exemples concrets adaptés à votre contexte."
+        }
+      ]
+    },
+    {
+      "code": "OFFRES_PME_ETI",
+      "titre": "Offres pour PME et ETI",
+      "faqs": [
+        {
+          "id": "pme-1",
+          "question": "Quelles sont les principales offres pour une PME qui démarre sa démarche cybersécurité ?",
+          "reponse": "Pour une PME qui démarre, nous recommandons généralement :\n1. Un audit de sécurité :\n   - \"Audit Flash PME < 50 salariés\" pour une première photographie rapide ;\n   - ou \"Audit 360° SI\" pour une vision plus complète.\n2. Un socle de protection continue :\n   - \"SOC 24/7 Essentiel (EDR + Workplace)\" pour surveiller vos postes, serveurs et usages collaboratifs ;\n3. Des actions de sensibilisation :\n   - services de sensibilisation & formation utilisateurs et simulateur de phishing, pour réduire le risque humain.\n\nVous pouvez ensuite ajouter progressivement des services plus avancés (pentests, CERT en pack d'heures, etc.) selon votre maturité et vos contraintes."
+        },
+        {
+          "id": "pme-2",
+          "question": "Quelle est la différence entre l'Audit Flash PME et l'Audit 360° SI ?",
+          "reponse": "L'Audit Flash PME (< 50 salariés) est un audit de sécurité standard, avec un périmètre adapté aux petites structures : il vise à identifier rapidement les principaux risques et à fournir un plan d'actions priorisé.\n\nL'Audit 360° SI est plus complet : il inclut, en plus de l'audit technique, une revue organisationnelle, l'analyse de logs et des interviews métiers (RSSI, DSI, responsables métiers). Il est plus adapté aux PME sensibles et aux ETI avec des enjeux de conformité ou de gouvernance plus complexes."
+        },
+        {
+          "id": "pme-3",
+          "question": "Que comprend le SOC 24/7 Essentiel pour PME/ETI ?",
+          "reponse": "Le SOC 24/7 Essentiel comprend :\n- La supervision 24/7 de vos endpoints (postes, serveurs) via un EDR ;\n- La surveillance de votre Digital Workplace (messagerie, outils collaboratifs, etc.) ;\n- La détection et l'analyse des alertes de sécurité ;\n- Des actions de réponse standard (isolation de poste, blocage d'activité suspecte, recommandations) ;\n- Des rapports mensuels et un tableau de bord accessible via la plateforme.\n\nDans la version Essentielle, la réponse à incident CERT est incluse en mode \"best effort\" et facturée à l'incident au-delà du socle."
+        },
+        {
+          "id": "pme-4",
+          "question": "En quoi le SOC Premium est-il différent du SOC Essentiel ?",
+          "reponse": "Le SOC 24/7 Premium inclut tous les bénéfices du SOC Essentiel (surveillance EDR + Digital Workplace, rapports, réponses 24/7), mais y ajoute :\n- Un crédit d'heures CERT inclus (par exemple 40h/an ou 60h/an selon le plan), pour la réponse à incident sans surcoût immédiat ;\n- Le service de préparation & conseil CERT (revue annuelle de crise, mise à jour de runbooks, briefings menaces).\n\nC'est une offre plus adaptée aux organisations qui souhaitent un accompagnement plus fort en cas d'attaque et un pilotage régulier de leur posture de sécurité."
+        },
+        {
+          "id": "pme-5",
+          "question": "Qu'est-ce qu'un pack Réponse à incident 24/7 ?",
+          "reponse": "Le Pack Réponse à incident 24/7 est un \"pack d'heures\" CERT prépayées : par exemple 20h ou 50h d'intervention en cas d'incident de sécurité (ransomware, compromission de compte, fuite de données, etc.).\nVous achetez à l'avance un volume d'heures à un tarif préférentiel ; en cas d'incident, ces heures sont consommées en priorité. Au-delà du crédit, les heures supplémentaires sont facturées au taux horaire standard."
+        },
+        {
+          "id": "pme-6",
+          "question": "Puis-je combiner un audit et un abonnement SOC dans une seule offre ?",
+          "reponse": "Oui. C'est précisément l'objectif de certains packs combinés, comme le \"Pack Cyber Start (Audit + SOC Essentiel)\" :\n- vous réalisez un audit Flash pour identifier les risques ;\n- vous mettez en place un SOC Essentiel pendant 12 mois pour assurer une surveillance continue ;\n- dans certains cas, l'audit est proposé à un tarif préférentiel si l'abonnement SOC est souscrit en même temps.\n\nCe type de pack est particulièrement adapté aux PME qui veulent lancer une démarche structurée rapidement."
+        }
+      ]
+    },
+    {
+      "code": "OFFRES_MSP",
+      "titre": "Offres pour MSP / Infogérants",
+      "faqs": [
+        {
+          "id": "msp-1",
+          "question": "Quelles offres proposez-vous pour les MSP / infogérants ?",
+          "reponse": "Pour les MSP et infogérants, nous proposons des offres dédiées :\n- \"SOC 24/7 MSP Starter\" : pour 1 à 10 clients finaux, avec 50–250 postes gérés ;\n- \"SOC 24/7 MSP Growth\" : pour les MSP en croissance (251–1000 postes) ;\n- \"SOC 24/7 MSP Elite\" : pour les très gros MSP / intégrateurs (> 1000 postes, engagement 36 mois) ;\n- \"SOC + CERT pack MSP\" : combinant surveillance SOC, crédit d'heures CERT mutualisé et préparation CERT ;\n- \"Plateforme MSP seule\" : lorsqu'un partenariat spécifique est mis en place.\n\nCes offres s'appuient sur le service S-SOC-MSP et la plateforme MSP multi-tenant, permettant de gérer plusieurs clients finaux dans une seule console."
+        },
+        {
+          "id": "msp-2",
+          "question": "Comment fonctionne le modèle wholesale pour les MSP ?",
+          "reponse": "En modèle wholesale, vous payez un prix \"gros\" par poste et par mois (par exemple 10 ou 12 €/poste/mois) en fonction du plan choisi. Vous pouvez ensuite revendre ce service à vos clients finaux avec votre marge (par exemple 19–24 €/poste/mois).\n\nLe but est de vous permettre de construire votre propre offre cybersécurité managée, tout en vous appuyant sur l'expertise SOC/CERT de Cyna et sur notre plateforme MSP."
+        },
+        {
+          "id": "msp-3",
+          "question": "Puis-je utiliser votre plateforme MSP sans prendre le SOC ?",
+          "reponse": "Dans certains cas de partenariat, une offre \"Plateforme MSP seule\" peut être proposée. Elle permet d'accéder à la console multi-tenant sans nécessairement consommer l'ensemble des services SOC associés.\n\nCette offre est généralement \"sur devis\" et discutée au cas par cas en fonction de votre modèle d'affaires et de votre parc client."
+        },
+        {
+          "id": "msp-4",
+          "question": "Que comprend l'offre SOC + CERT pack MSP ?",
+          "reponse": "L'offre \"SOC + CERT pack MSP\" combine :\n- le SOC MSP multi-tenant (S-SOC-MSP) ;\n- un crédit d'heures CERT mutualisé pour l'ensemble de votre parc (par exemple 100h/an) ;\n- le service de préparation & conseil CERT (S-CERT-PREP) adapté à un contexte multi-client.\n\nCela permet à un MSP d'offrir à ses clients finaux à la fois une surveillance 24/7 et un support incident avancé en cas d'attaque, tout en mutualisant les coûts."
+        }
+      ]
+    },
+    {
+      "code": "FACTURATION",
+      "titre": "Prix, facturation et engagement",
+      "faqs": [
+        {
+          "id": "fact-1",
+          "question": "Comment sont calculés les prix \"par poste\" ?",
+          "reponse": "Pour les offres facturées \"par poste\" (par endpoint/utilisateur), la règle générale est :\n- prix mensuel = nombre_de_postes_facturés × prix_par_poste ;\n- nombre_de_postes_facturés = max(nombre_de_postes_réels, min_postes_du_plan).\n\nPar exemple, si un plan SOC Essentiel 20–50 postes est à 19 €/poste/mois avec un minimum de 20 postes, et que vous avez 18 postes, la facturation se fera sur 20 postes (380 €/mois)."
+        },
+        {
+          "id": "fact-2",
+          "question": "Que signifie un prix \"à partir de X €\" ?",
+          "reponse": "Un prix présenté comme \"à partir de X €\" correspond au tarif minimal pour un périmètre donné (par exemple, un certain nombre de postes ou un plan d'entrée de gamme).\n\nLe prix réel peut être plus élevé en fonction :\n- du nombre de postes ou sites,\n- des options ajoutées,\n- des engagements de durée,\n- des besoins spécifiques (par exemple, environnement très critique ou complexe).\n\nDans tous les cas, le détail du prix final est précisé lors de la configuration de l'offre ou sur devis."
+        },
+        {
+          "id": "fact-3",
+          "question": "Quelle est la différence entre une prestation one-shot et un abonnement ?",
+          "reponse": "Une prestation \"one-shot\" est réalisée une fois : par exemple un audit, un pentest ou un pack d'heures CERT. Vous payez un montant unique lié à cette intervention.\n\nUn abonnement (subscription) est une offre récurrente : vous payez chaque mois (ou chaque année) tant que le contrat est actif. C'est le cas typique des offres SOC 24/7 et de certains services de sensibilisation ou de préparation CERT."
+        },
+        {
+          "id": "fact-4",
+          "question": "Proposez-vous des engagements de durée (12 mois, 36 mois, etc.) ?",
+          "reponse": "Oui. La plupart des offres d'abonnement SOC sont assorties d'un engagement minimal (par exemple 12 mois pour les offres PME/ETI, 36 mois pour certaines offres MSP Elite).\n\nCet engagement permet de sécuriser la relation de service (déploiement, tuning, suivi) et de proposer des tarifs plus compétitifs. Les conditions exactes d'engagement sont précisées dans chaque plan tarifaire."
+        },
+        {
+          "id": "fact-5",
+          "question": "Comment sont facturées les heures CERT au-delà d'un pack ou d'un crédit inclus ?",
+          "reponse": "Lorsque vous disposez d'un pack d'heures CERT (par exemple 20h ou 50h) ou d'un crédit d'heures inclus dans une offre Premium/MSP, ces heures sont consommées en priorité lors d'un incident.\n\nUne fois le crédit épuisé, les heures supplémentaires sont facturées au taux horaire en vigueur (par exemple 350 €/h HT, montant indicatif dans la documentation). Le tarif exact est confirmé dans le contrat ou le devis."
+        }
+      ]
+    },
+    {
+      "code": "SUBVENTIONS",
+      "titre": "Subventions et aides financières",
+      "faqs": [
+        {
+          "id": "subv-1",
+          "question": "Puis-je financer mes projets cybersécurité avec des subventions ?",
+          "reponse": "Oui, dans de nombreux cas il existe des subventions ou aides financières pour les projets cybersécurité : audits, SOC, outils, formations, etc.\nCes dispositifs peuvent être nationaux, régionaux ou sectoriels, et évoluer dans le temps."
+        },
+        {
+          "id": "subv-2",
+          "question": "Qu'est-ce que le Diag Cyber ?",
+          "reponse": "Le Diag Cyber est un dispositif (ex : Bpifrance) qui permet de financer partiellement un audit ou un diagnostic cybersécurité. Concrètement, une partie du coût de l'audit est prise en charge par l'organisme, le reste par l'entreprise.\n\nLes modalités exactes (plafond, taux de prise en charge, éligibilité) dépendent du programme en vigueur au moment de la demande."
+        },
+        {
+          "id": "subv-3",
+          "question": "Qu'est-ce que le Chèque Cyber ou aide à l'investissement cyber ?",
+          "reponse": "Le Chèque Cyber (ou dispositifs équivalents) est une aide qui vise à subventionner l'achat de solutions ou services de cybersécurité : outils, SOC, prestations d'audit, etc.\n\nL'aide prend généralement la forme d'un pourcentage de prise en charge jusqu'à un certain plafond. Là encore, les règles varient selon les programmes et les régions."
+        },
+        {
+          "id": "subv-4",
+          "question": "Proposez-vous un accompagnement pour monter les dossiers de subventions ?",
+          "reponse": "Oui. Nous proposons un service d'accompagnement subventions :\n- identification des dispositifs potentiels (Diag Cyber, Chèque Cyber, aides régionales, etc.) ;\n- aide à la préparation des dossiers (justificatifs, descriptifs de projet, budget) ;\n- suivi des échanges avec l'organisme en charge.\n\nCe service peut être inclus ou proposé en option selon les offres."
+        }
+      ]
+    },
+    {
+      "code": "SECURITE_DONNEES",
+      "titre": "Sécurité des données et conformité",
+      "faqs": [
+        {
+          "id": "sec-1",
+          "question": "Comment protégez-vous les données de mes systèmes et de mes utilisateurs ?",
+          "reponse": "Nos services reposent sur plusieurs niveaux de sécurité :\n- utilisation d'outils EDR et de surveillance avancée sur les endpoints ;\n- supervision centralisée via SOC 24/7 ;\n- segmentation des accès et séparation des environnements clients (surtout pour les MSP) ;\n- procédures strictes pour la manipulation de logs et d'artefacts techniques lors des investigations.\n\nNous ne demandons jamais de mots de passe ni de données particulièrement sensibles (numéros complets de carte bancaire, codes de sécurité). Lorsque de telles données sont présentes dans les systèmes audités, elles sont traitées conformément aux bonnes pratiques et à la réglementation en vigueur (ex : RGPD)."
+        },
+        {
+          "id": "sec-2",
+          "question": "Accédez-vous à mes systèmes à distance, et si oui comment ?",
+          "reponse": "Selon les services souscrits, nous pouvons avoir besoin d'un accès sécurisé à distance :\n- pour installer/configurer des agents EDR ;\n- pour consulter des logs ;\n- pour intervenir en cas d'incident.\n\nCes accès sont mis en place via des canaux sécurisés (VPN, bastions, accès restreints) et font l'objet de contrôles d'habilitation. Les modalités exactes sont toujours formalisées dans le contrat ou l'accord de prestation."
+        },
+        {
+          "id": "sec-3",
+          "question": "Que se passe-t-il avec mes données après un audit ou un incident ?",
+          "reponse": "Après un audit ou un incident, nous conservons les informations strictement nécessaires : rapports, éléments de preuve utiles à la compréhension de l'incident, etc.\n\nLes données brutes (logs, images disque, exports) sont traitées selon des durées de conservation définies contractuellement et peuvent être anonymisées ou supprimées une fois leur utilité opérationnelle ou légale terminée.\n\nVous pouvez demander des précisions ou des clauses spécifiques de confidentialité/conservation lors de la contractualisation."
+        }
+      ]
+    },
+    {
+      "code": "SUPPORT_PROCESS",
+      "titre": "Support, processus et mise en œuvre",
+      "faqs": [
+        {
+          "id": "sup-1",
+          "question": "Comment se déroule un audit de sécurité commandé sur le site ?",
+          "reponse": "De manière générale, un audit commandé en ligne suit les étapes suivantes :\n1. Confirmation de la commande et cadrage téléphonique (périmètre, interlocuteurs, planning) ;\n2. Collecte des informations nécessaires (documents, accès, architecture) ;\n3. Réalisation de l'audit (entretiens, analyses, tests) ;\n4. Rédaction du rapport et plan d'actions ;\n5. Restitution (réunion de présentation des résultats).\n\nLe détail peut varier selon l'offre (Audit Flash vs Audit 360°)."
+        },
+        {
+          "id": "sup-2",
+          "question": "Que se passe-t-il après la souscription à un SOC 24/7 ?",
+          "reponse": "Après votre souscription à un SOC 24/7, nous planifions un projet de mise en œuvre :\n- validation du périmètre (postes, serveurs, sites) ;\n- installation des agents et intégration des sources de logs ;\n- configuration des règles de détection et des scénarios de réponse ;\n- phase de tuning et de validation ;\n- passage en production avec surveillance 24/7 et rapports réguliers.\n\nVous disposez d'un point de contact dédié pour le suivi et pouvez accéder aux tableaux de bord via la plateforme."
+        },
+        {
+          "id": "sup-3",
+          "question": "Comment déclenche-t-on une intervention CERT en cas d'incident ?",
+          "reponse": "En cas d'incident (ransomware, compromission, attaque en cours), vous contactez le numéro ou canal d'urgence indiqué dans votre contrat ou votre espace client.\n\nSelon votre offre (pack d'heures, SOC Premium, pack MSP), une équipe CERT est mobilisée pour :\n- qualifier l'incident ;\n- organiser les premières mesures de confinement ;\n- planifier la remédiation et la restauration ;\n- documenter l'incident et les actions menées.\n\nLe crédit d'heures inclus est consommé en priorité, puis la facturation horaire s'applique au-delà."
+        },
+        {
+          "id": "sup-4",
+          "question": "Comment puis-je obtenir un devis personnalisé ?",
+          "reponse": "Pour toute situation qui sort des plans standards (volumes très importants, besoins spécifiques, intégrations particulières ou contexte réglementaire exigeant), vous pouvez demander un devis personnalisé :\n- directement depuis une page produit (bouton \"Demander un devis\");\n- via le formulaire de contact ;\n- ou en prenant rendez-vous avec nos équipes commerciales.\n\nNous analyserons votre contexte (taille, secteur, contraintes) et proposerons une offre adaptée, éventuellement basée sur les produits catalogués."
+        }
+      ]
+    }
+  ]
+}
+

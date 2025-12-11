@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { Box, Alert, Typography, Paper } from '@mui/material'
+import { Box, Alert, Typography, Paper, Chip } from '@mui/material'
 import ChatMessages from '../components/ChatMessages/ChatMessages'
 import ChatInput from '../components/ChatInput/ChatInput'
 import ProfileSelector from '../components/ProfileSelector/ProfileSelector'
@@ -256,25 +256,21 @@ export default function ChatPage({ loadedSession, loadedProfile, onSessionCleare
             borderColor: 'primary.main',
           }}
         >
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-            <Typography variant="body2" fontWeight="bold">
-              Profil actif: {selectedProfile.name}
-            </Typography>
-            {selectedProfile.ragEnabled && (
-              <Typography variant="caption" sx={{ 
-                px: 1, 
-                py: 0.5, 
-                borderRadius: 1, 
-                bgcolor: selectedProfile.indexStatus === 'ready' ? 'success.light' : 'warning.light',
-                color: selectedProfile.indexStatus === 'ready' ? 'success.dark' : 'warning.dark'
-              }}>
-                RAG: {selectedProfile.indexStatus === 'ready' ? '✓ Actif' : selectedProfile.indexStatus}
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Box>
+              <Typography variant="body2" fontWeight="bold">
+                Profil actif : {selectedProfile.name}
               </Typography>
+            </Box>
+            {selectedProfile.ragEnabled && (
+              <Chip
+                label="RAG activé"
+                color="primary"
+                size="small"
+                sx={{ color: '#ffffff' }}
+              />
             )}
           </Box>
-          <Typography variant="caption" color="text.secondary">
-            {selectedProfile.system_context}
-          </Typography>
         </Paper>
       )}
 

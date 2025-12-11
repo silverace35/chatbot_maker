@@ -1,0 +1,315 @@
+{
+  "acteurs_organisations": [
+    {
+      "code": "PME",
+      "nom": "Petite et Moyenne Entreprise",
+      "categorie": "ORGANISATION",
+      "description": "Entreprise de 10 à 250 salariés environ, avec des moyens IT limités et rarement un service cybersécurité dédié."
+    },
+    {
+      "code": "ETI",
+      "nom": "Entreprise de Taille Intermédiaire",
+      "categorie": "ORGANISATION",
+      "description": "Entreprise plus grosse qu'une PME (jusqu'à quelques milliers de salariés), avec des besoins cybersécurité plus complexes et souvent une DSI structurée."
+    },
+    {
+      "code": "MSP",
+      "nom": "Managed Service Provider",
+      "categorie": "PRESTATAIRE",
+      "description": "Prestataire qui gère l'informatique de plusieurs clients (PME/ETI) : postes, serveurs, réseaux, sauvegardes, etc., et revend des services de cybersécurité."
+    },
+    {
+      "code": "INFOGERANT",
+      "nom": "Infogérant",
+      "categorie": "PRESTATAIRE",
+      "description": "Entreprise qui prend en charge tout ou partie du système d'information d'un client (exploitation, maintenance, supervision…). Proche du concept de MSP."
+    },
+    {
+      "code": "DSI",
+      "nom": "Direction des Systèmes d'Information",
+      "categorie": "FONCTION_INTERNE",
+      "description": "Responsable ou département qui gère l'IT de l'entreprise : infrastructure, applications, sécurité, budgets, etc."
+    },
+    {
+      "code": "RSSI",
+      "nom": "Responsable de la Sécurité des Systèmes d'Information",
+      "categorie": "FONCTION_INTERNE",
+      "description": "Personne en charge de la stratégie et du pilotage de la sécurité (politiques, plans d'actions, conformité)."
+    },
+    {
+      "code": "COMEX",
+      "nom": "Comité exécutif",
+      "categorie": "DIRECTION",
+      "description": "Équipe de direction (DG, CFO, COO, etc.) à qui l'on fournit des rapports cybersécurité synthétiques, orientés risque et business."
+    }
+  ],
+  "concepts_techniques": [
+    {
+      "code": "SI",
+      "nom": "Système d'Information",
+      "categorie": "TECHNIQUE",
+      "description": "Ensemble des ressources informatiques de l'entreprise : matériels, logiciels, données, réseaux, processus."
+    },
+    {
+      "code": "SOC",
+      "nom": "Security Operations Center",
+      "categorie": "TECHNIQUE",
+      "description": "Centre opérationnel où une équipe surveille en continu (souvent 24/7) les systèmes pour détecter et analyser les menaces."
+    },
+    {
+      "code": "SOC_MANA",
+      "nom": "SOC managé",
+      "categorie": "TECHNIQUE",
+      "description": "SOC opéré par un prestataire externe pour le compte de plusieurs clients, en mode service."
+    },
+    {
+      "code": "CERT",
+      "nom": "Computer Emergency Response Team",
+      "categorie": "TECHNIQUE",
+      "description": "Équipe spécialisée dans la réponse aux incidents de sécurité : investigation, confinement, remédiation, retour à la normale."
+    },
+    {
+      "code": "INCIDENT_CYBER",
+      "nom": "Incident de sécurité / cyber",
+      "categorie": "TECHNIQUE",
+      "description": "Événement qui compromet ou tente de compromettre la confidentialité, l'intégrité ou la disponibilité des systèmes ou des données (ransomware, fuite de données, compromission de compte, etc.)."
+    },
+    {
+      "code": "FORENSIC",
+      "nom": "Forensic (investigation numérique)",
+      "categorie": "TECHNIQUE",
+      "description": "Analyse technique poussée (logs, disques, mémoire, traces réseau…) pour comprendre une attaque et les actions de l'attaquant."
+    },
+    {
+      "code": "EDR",
+      "nom": "Endpoint Detection & Response",
+      "categorie": "TECHNIQUE",
+      "description": "Outil de sécurité installé sur les terminaux (postes, serveurs) pour détecter les comportements suspects et permettre l'investigation et la réponse."
+    },
+    {
+      "code": "ENDPOINT",
+      "nom": "Endpoint / Terminal",
+      "categorie": "TECHNIQUE",
+      "description": "Machine utilisée par un utilisateur ou pour un service : PC, laptop, serveur, parfois mobile."
+    },
+    {
+      "code": "DIGITAL_WORKPLACE",
+      "nom": "Digital Workplace",
+      "categorie": "TECHNIQUE",
+      "description": "Environnement de travail numérique de l'utilisateur : poste, outils collaboratifs, messagerie, stockage cloud, etc., qui constitue le périmètre supervisé/protégé."
+    },
+    {
+      "code": "ANTISPAM_AVANCE",
+      "nom": "Antispam avancé",
+      "categorie": "TECHNIQUE",
+      "description": "Solution de filtrage des emails (en amont de la messagerie) pour bloquer spam, phishing, pièces jointes malveillantes et liens dangereux."
+    },
+    {
+      "code": "PENTEST",
+      "nom": "Pentest (test d'intrusion)",
+      "categorie": "TECHNIQUE",
+      "description": "Exercice où un expert attaque un système (appli web, infra, réseau…) comme un pirate pour trouver et démontrer les vulnérabilités."
+    },
+    {
+      "code": "AUDIT_SECURITE",
+      "nom": "Audit de sécurité",
+      "categorie": "TECHNIQUE",
+      "description": "Évaluation structurée de la sécurité (organisationnelle, technique, procédurale) pour identifier les risques et recommander des actions."
+    },
+    {
+      "code": "VULNERABILITE",
+      "nom": "Vulnérabilité",
+      "categorie": "TECHNIQUE",
+      "description": "Faiblesse exploitable dans un système (logiciel non patché, configuration faible, défaut de procédure…)."
+    },
+    {
+      "code": "VPN",
+      "nom": "Virtual Private Network",
+      "categorie": "TECHNIQUE",
+      "description": "Tunnel chiffré qui permet de se connecter à distance de façon sécurisée au réseau de l'entreprise."
+    },
+    {
+      "code": "ACTIVE_DIRECTORY",
+      "nom": "Active Directory (AD)",
+      "categorie": "TECHNIQUE",
+      "description": "Service Microsoft centralisé qui gère les comptes utilisateurs, groupes, droits et politiques de sécurité dans les environnements Windows."
+    },
+    {
+      "code": "RUNBOOK",
+      "nom": "Runbook",
+      "categorie": "TECHNIQUE",
+      "description": "Procédure écrite et détaillée qui décrit les étapes à suivre en cas d'incident ou d'opération récurrente (ex : que faire en cas de ransomware ?)."
+    }
+  ],
+  "services_offres": [
+    {
+      "code": "SURVEILLANCE_247",
+      "nom": "Surveillance 24/7",
+      "categorie": "OFFRE",
+      "description": "Supervision continue (jour/nuit, week-end) des systèmes et alertes via SOC."
+    },
+    {
+      "code": "DETECTION_REPONSE",
+      "nom": "Détection & réponse aux menaces",
+      "categorie": "OFFRE",
+      "description": "Capacité à repérer les signaux d'attaque (logs, alertes EDR, anomalies) et à déclencher des actions de défense (bloquer, isoler, corriger)."
+    },
+    {
+      "code": "REPONSE_INCIDENT",
+      "nom": "Réponse à incident",
+      "categorie": "OFFRE",
+      "description": "Ensemble des actions menées lorsqu'une attaque est détectée : analyse, confinement, restauration, communication, retour à la normale."
+    },
+    {
+      "code": "PLAN_ACTION_SECURITE",
+      "nom": "Plan d'actions sécurité",
+      "categorie": "OFFRE",
+      "description": "Liste structurée de mesures (techniques, organisationnelles, procédurales) pour améliorer le niveau de sécurité, souvent priorisée par criticité et effort."
+    },
+    {
+      "code": "SENSIBILISATION_CYBER",
+      "nom": "Sensibilisation cybersécurité",
+      "categorie": "OFFRE",
+      "description": "Actions pour éduquer les utilisateurs (formations, ateliers, contenus) sur les bonnes pratiques et les risques (phishing, mots de passe, comportements à risque…)."
+    },
+    {
+      "code": "SIMULATEUR_PHISHING",
+      "nom": "Simulateur de phishing",
+      "categorie": "OFFRE",
+      "description": "Outil qui envoie de faux emails de phishing à des utilisateurs pour tester leur vigilance et les former."
+    },
+    {
+      "code": "CAS_CLIENT",
+      "nom": "Cas client / Cas d'usage",
+      "categorie": "OFFRE",
+      "description": "Exemples concrets d'entreprises ayant utilisé les services (avant/après) pour illustrer la valeur."
+    }
+  ],
+  "subventions": [
+    {
+      "code": "SUBVENTIONS_CYBER",
+      "nom": "Subventions cyber",
+      "categorie": "AIDE_FINANCIERE",
+      "description": "Aides financières publiques ou para-publiques qui permettent de financer une partie des projets cybersécurité (audit, SOC, outils…)."
+    },
+    {
+      "code": "DIAG_CYBER",
+      "nom": "Diag Cyber",
+      "categorie": "AIDE_FINANCIERE",
+      "description": "Dispositif de diagnostic/audit cybersécurité partiellement financé par un organisme (ex : Bpifrance), selon les programmes en vigueur."
+    },
+    {
+      "code": "CHEQUE_CYBER",
+      "nom": "Chèque Cyber / Aide à l'investissement cyber",
+      "categorie": "AIDE_FINANCIERE",
+      "description": "Aide financière pour l'achat de solutions ou services de cybersécurité, avec pourcentage de prise en charge et plafond."
+    },
+    {
+      "code": "ACCOMPAGNEMENT_SUBVENTIONS",
+      "nom": "Accompagnement subventions",
+      "categorie": "SERVICE_ACCOMPAGNEMENT",
+      "description": "Service d'accompagnement pour identifier les aides éligibles et monter les dossiers de financement."
+    }
+  ],
+  "concepts_commerciaux": [
+    {
+      "code": "SERVICE_METIER",
+      "nom": "Service (métier)",
+      "categorie": "COMMERCE",
+      "description": "Ce que Cyna fait concrètement : audit, SOC, CERT, formation, etc. C'est la brique fonctionnelle de base, sans notion de prix ou de pack."
+    },
+    {
+      "code": "PRODUIT_OFFRE",
+      "nom": "Produit (offre commerciale)",
+      "categorie": "COMMERCE",
+      "description": "Ensemble packagé de services avec cadrage commercial (prix, durée, volume, options) vendu au client."
+    },
+    {
+      "code": "PACK",
+      "nom": "Pack",
+      "categorie": "COMMERCE",
+      "description": "Produit qui regroupe plusieurs services (ex : Audit + 12 mois de SOC) dans une offre globale avec conditions/prix spécifiques."
+    },
+    {
+      "code": "PACK_HEURES",
+      "nom": "Pack d'heures",
+      "categorie": "COMMERCE",
+      "description": "Produit où le client achète à l'avance un volume d'heures d'intervention (ex : 20h de CERT) qu'il consommera en cas de besoin."
+    },
+    {
+      "code": "ABONNEMENT",
+      "nom": "Abonnement / Subscription",
+      "categorie": "COMMERCE",
+      "description": "Offre récurrente facturée périodiquement (mensuelle, annuelle) tant que le contrat est actif (typique pour le SOC)."
+    },
+    {
+      "code": "ONE_SHOT",
+      "nom": "One-shot",
+      "categorie": "COMMERCE",
+      "description": "Prestation ponctuelle, réalisée une fois (ex : audit, pentest, pack incident)."
+    },
+    {
+      "code": "WHOLESALE",
+      "nom": "Wholesale",
+      "categorie": "COMMERCE",
+      "description": "Modèle de vente en gros à un intermédiaire (MSP), qui revend ensuite le service à ses clients finaux avec sa marge."
+    },
+    {
+      "code": "PLAN_TARIFAIRE",
+      "nom": "Plan tarifaire (plan)",
+      "categorie": "COMMERCE",
+      "description": "Variante d'un produit selon la taille ou le volume (S/M/L, 50 postes, 200 postes…) avec un prix spécifique."
+    },
+    {
+      "code": "PRIX_PAR_POSTE",
+      "nom": "Prix par poste / par endpoint",
+      "categorie": "COMMERCE",
+      "description": "Mode de facturation basé sur le nombre de terminaux/utilisateurs protégés."
+    },
+    {
+      "code": "ENGAGEMENT",
+      "nom": "Engagement",
+      "categorie": "COMMERCE",
+      "description": "Durée minimale contractuelle pendant laquelle le client s'engage à payer l'abonnement (ex : 12 ou 36 mois)."
+    },
+    {
+      "code": "OPTION",
+      "nom": "Option",
+      "categorie": "COMMERCE",
+      "description": "Complément payant ajouté à un produit (ex : rapport Comex, module antispam, formation)."
+    },
+    {
+      "code": "PRIX_A_PARTIR_DE",
+      "nom": "Prix \"à partir de\"",
+      "categorie": "COMMERCE",
+      "description": "Prix minimal affiché pour un volume ou périmètre donné ; le prix réel peut être plus élevé selon le cas."
+    }
+  ],
+  "qualite_service": [
+    {
+      "code": "SLA",
+      "nom": "Service Level Agreement",
+      "categorie": "QUALITE_SERVICE",
+      "description": "Engagement formalisé de niveau de service : temps de réponse, disponibilité, délai de prise en charge, etc."
+    },
+    {
+      "code": "NBD",
+      "nom": "Next Business Day",
+      "categorie": "QUALITE_SERVICE",
+      "description": "Engagement de prise en charge ou d'intervention au plus tard le jour ouvré suivant."
+    },
+    {
+      "code": "SERVICE_247",
+      "nom": "24/7",
+      "categorie": "QUALITE_SERVICE",
+      "description": "Service disponible en continu 24 heures sur 24, 7 jours sur 7 (y compris nuits, week-ends, jours fériés)."
+    },
+    {
+      "code": "RAPPORT_COMEX",
+      "nom": "Rapport Comex / Rapport exécutif",
+      "categorie": "QUALITE_SERVICE",
+      "description": "Synthèse orientée direction générale, qui met en avant risques, tendances et décisions, plutôt que des détails techniques."
+    }
+  ]
+}
+

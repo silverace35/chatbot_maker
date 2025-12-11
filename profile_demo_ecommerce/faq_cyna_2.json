@@ -1,0 +1,115 @@
+{
+  "categories": [
+    {
+      "code": "NAVIGATION_SITE",
+      "titre": "Navigation sur le site et recherche d'offres",
+      "faqs": [
+        {
+          "id": "nav-1",
+          "question": "Comment trouver rapidement l'offre la plus adaptée à ma situation ?",
+          "reponse": "Vous pouvez utiliser le filtrage par segment (PME, ETI, MSP) et par type de besoin (Audit, SOC, Réponse à incident, Sensibilisation). Pour une première approche :\n- si vous cherchez un diagnostic global, regardez la catégorie \"Audit & Pentest\" ;\n- si vous voulez une protection continue, regardez les offres de type \"SOC managé 24/7\" ;\n- si vous êtes en train de gérer ou de craindre un incident, consultez les packs \"Réponse à incident\".\n\nSi vous hésitez entre plusieurs offres, vous pouvez comparer les fiches produits ou demander un rappel d'un conseiller."
+        },
+        {
+          "id": "nav-2",
+          "question": "Puis-je filtrer les offres uniquement pour mon type d'organisation (PME, ETI ou MSP) ?",
+          "reponse": "Oui. La plupart des pages catalogue permettent de filtrer les offres par type de client : PME, ETI ou MSP. Nous recommandons de choisir d'abord votre segment, puis d'affiner par catégorie de service (Audit, SOC, CERT, Plateforme MSP, etc.) afin de ne voir que les offres pertinentes pour votre organisation."
+        },
+        {
+          "id": "nav-3",
+          "question": "Quelle différence entre un \"service\" et un \"produit\" sur le site ?",
+          "reponse": "Un \"service\" correspond à ce que nos équipes délivrent concrètement (ex : audit, SOC, CERT, formation). Un \"produit\" est une offre commerciale packagée, qui combine généralement un ou plusieurs services, avec un cadrage prix/durée/volume et éventuellement des options.\n\nSur le site, vous verrez essentiellement des produits (offres commerciales) qui reposent sur ces services métiers."
+        },
+        {
+          "id": "nav-4",
+          "question": "Comment comparer deux offres SOC entre elles ?",
+          "reponse": "Pour comparer deux offres SOC, nous vous conseillons de regarder :\n- le périmètre couvert (postes, serveurs, Digital Workplace, etc.) ;\n- le type de clientèle visée (PME/ETI vs MSP) ;\n- les services inclus (ex : CERT inclus ou en best effort) ;\n- le mode de facturation (par poste, pack, engagement) ;\n- les options disponibles (antispam avancé, rapports Comex, etc.).\n\nLes pages produits affichent ces éléments de manière structurée afin de faciliter la comparaison."
+        }
+      ]
+    },
+    {
+      "code": "PENTEST_AUDIT",
+      "titre": "Questions sur les audits et pentests",
+      "faqs": [
+        {
+          "id": "pent-1",
+          "question": "Quel est l'objectif principal d'un pentest applicatif Web ?",
+          "reponse": "Un pentest applicatif Web a pour objectif d'identifier et de démontrer les vulnérabilités exploitables sur une application web exposée (site client, portail, back-office, API, etc.). L'équipe de test se comporte comme un attaquant légitime dans un cadre contrôlé, puis fournit un rapport détaillant les failles, leur impact et des recommandations de remédiation."
+        },
+        {
+          "id": "pent-2",
+          "question": "Quelle est la différence entre un pentest Web et un pentest infrastructure ?",
+          "reponse": "Un pentest Web se concentre sur une application web donnée (login, formulaires, logique métier, API, etc.).\n\nUn pentest infrastructure, lui, vise la robustesse de l'architecture technique globale : réseau interne/externe, Active Directory, VPN, pare-feux, services exposés, etc. Les deux sont complémentaires : le premier cible l'application, le second le socle technique qui la porte."
+        },
+        {
+          "id": "pent-3",
+          "question": "Combien de temps dure généralement un audit ou un pentest ?",
+          "reponse": "La durée dépend de l'offre et du périmètre :\n- un Audit Flash PME sur un périmètre limité peut durer de quelques jours à deux semaines ;\n- un Audit 360° SI ou un pentest complexe peut s'étendre sur plusieurs semaines (temps d'analyse + rédaction + restitution).\n\nDans tous les cas, un planning prévisionnel est défini au moment de la commande ou du cadrage initial."
+        },
+        {
+          "id": "pent-4",
+          "question": "Dois-je arrêter mes systèmes pendant un audit ou un pentest ?",
+          "reponse": "En général, non. La plupart des audits et pentests sont réalisés sur des systèmes en production, avec des précautions pour limiter les perturbations.\n\nPour les tests les plus sensibles, certaines actions peuvent être planifiées en heures creuses ou sur des environnements de préproduction, selon vos contraintes. Tout ceci est discuté et validé lors du cadrage."
+        }
+      ]
+    },
+    {
+      "code": "SENSIBILISATION_FORMATION",
+      "titre": "Sensibilisation et formation des utilisateurs",
+      "faqs": [
+        {
+          "id": "sens-1",
+          "question": "Pourquoi investir dans la sensibilisation cybersécurité des collaborateurs ?",
+          "reponse": "Une grande partie des incidents (phishing, fuites de données, erreurs de manipulation) sont liés au facteur humain. La sensibilisation cybersécurité permet de réduire significativement ce risque en expliquant :\n- les bons réflexes face aux emails suspects ;\n- la gestion des mots de passe ;\n- les comportements à adopter sur les outils collaboratifs et en mobilité.\n\nCombinée à un socle technique (EDR, SOC, durcissement), elle renforce fortement votre posture globale de sécurité."
+        },
+        {
+          "id": "sens-2",
+          "question": "Qu'est-ce qu'un simulateur de phishing et comment l'utilise-t-on ?",
+          "reponse": "Un simulateur de phishing est un outil qui envoie de faux emails de phishing à vos collaborateurs pour tester leur vigilance et les former. Les campagnes sont scénarisées (types de messages, niveaux de difficulté) et permettent de :\n- mesurer le taux de clics et de saisie de mots de passe ;\n- cibler des actions de formation supplémentaires ;\n- suivre l'amélioration dans le temps.\n\nCes campagnes sont menées dans un cadre légal et éthique, avec une communication interne adaptée."
+        },
+        {
+          "id": "sens-3",
+          "question": "Proposez-vous des formations en présentiel, à distance, ou les deux ?",
+          "reponse": "Nous pouvons proposer différents formats selon les offres et les besoins :\n- sessions en présentiel sur site ;\n- sessions à distance (visioconférence) ;\n- modules en ligne ou contenus asynchrones.\n\nLe format est généralement précisé dans l'offre ou ajusté lors du cadrage avec vos équipes."
+        }
+      ]
+    },
+    {
+      "code": "ASPECTS_JURIDIQUES",
+      "titre": "Aspects juridiques et contractuels",
+      "faqs": [
+        {
+          "id": "jur-1",
+          "question": "Les informations de prix sur le site ont-elles une valeur contractuelle ?",
+          "reponse": "Les prix indiqués sur le site sont fournis à titre indicatif pour vous permettre de vous situer et de comparer les offres. Certains sont fermes pour des plans standard (par exemple, packs one-shot), d'autres sont affichés \"à partir de\" pour refléter la variabilité en fonction du volume ou du contexte.\n\nLa valeur contractuelle est portée par le devis ou le contrat signé, qui précise les conditions exactes (périmètre, prix, engagement, SLA)."
+        },
+        {
+          "id": "jur-2",
+          "question": "Puis-je ajouter des clauses de confidentialité spécifiques ?",
+          "reponse": "Oui. Bien que nos contrats incluent déjà des engagements de confidentialité standards, il est possible de prévoir des clauses spécifiques (NDA, clauses de traitement de données, exigences sectorielles, etc.).\n\nCes adaptations se font lors de la phase de contractualisation, souvent à partir d'un devis ou d'une offre personnalisée."
+        },
+        {
+          "id": "jur-3",
+          "question": "Êtes-vous en mesure de travailler avec des exigences réglementaires particulières (ex : secteur de la santé, finance) ?",
+          "reponse": "Oui, nos équipes sont habituées à travailler avec des organisations soumises à des exigences réglementaires spécifiques (santé, finance, industrie critique, etc.).\n\nSelon votre contexte, nous pouvons adapter :\n- la gouvernance (comités, rapports, revues régulières) ;\n- la documentation fournie (rapports orientés conformité) ;\n- certaines clauses contractuelles.\n\nCes éléments sont généralement traités lors de l'étude de besoin et du devis."
+        }
+      ]
+    },
+    {
+      "code": "COMPATIBILITE_ENVIRONNEMENT",
+      "titre": "Compatibilité avec votre environnement IT",
+      "faqs": [
+        {
+          "id": "comp-1",
+          "question": "Votre SOC et vos outils EDR sont-ils compatibles avec mon environnement (Windows, Linux, Mac) ?",
+          "reponse": "Nos solutions EDR et SOC couvrent les environnements les plus courants :\n- postes et serveurs Windows ;\n- principaux environnements Linux ;\n- dans certains cas, macOS (selon les agents supportés).\n\nLors du cadrage technique, nous vérifions systématiquement la compatibilité avec votre parc (systèmes, versions, contraintes) et proposons, si nécessaire, des aménagements ou exclusions."
+        },
+        {
+          "id": "comp-2",
+          "question": "Comment se passe l'intégration avec nos outils existants (SIEM, sauvegardes, ticketing) ?",
+          "reponse": "Selon votre maturité et vos outils existants, plusieurs scénarios sont possibles :\n- intégration simple avec les agents ou connecteurs fournis par nos solutions ;\n- collecte de logs supplémentaires vers notre SOC ;\n- interfaçage avec vos outils de ticketing ou de supervision.\n\nCes aspects sont discutés lors du cadrage et, si besoin, font l'objet d'un mini-projet d'intégration décrit dans le devis."
+        }
+      ]
+    }
+  ]
+}
+

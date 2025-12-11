@@ -3,7 +3,6 @@ import {
   Paper,
   Typography,
   Button,
-  Divider,
   Chip,
 } from '@mui/material';
 import {
@@ -77,28 +76,8 @@ export default function ProfileDetails({
           </Box>
         </Box>
 
-        <Divider sx={{ my: 2 }} />
-
-        <Box>
-          <Typography variant="subtitle2" gutterBottom>
-            Contexte système
-          </Typography>
-          <Paper
-            variant="outlined"
-            sx={{
-              p: 2,
-              bgcolor: 'grey.50',
-              whiteSpace: 'pre-wrap',
-              fontFamily: 'monospace',
-              fontSize: '0.875rem',
-            }}
-          >
-            {profile.system_context}
-          </Paper>
-        </Box>
-
         {profile.ragEnabled && (
-          <Box sx={{ mt: 2 }}>
+          <Box sx={{ mt: 1.5 }}>
             <Typography variant="subtitle2" gutterBottom>
               Configuration RAG
             </Typography>
