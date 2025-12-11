@@ -4,8 +4,20 @@
     "nav": {
       "home": "Accueil",
       "jokes": "Blagues",
-      "chat": "Chat LLM"
+      "chat": "Chat LLM",
+      "history": "Historique"
     }
+  },
+  "history": {
+    "title": "Historique des conversations",
+    "emptyState": "Aucune conversation pour le moment",
+    "emptyStateDescription": "Les conversations que vous créerez apparaîtront ici",
+    "lastMessage": "Dernier message",
+    "messagesCount": "{{count}} message",
+    "messagesCount_plural": "{{count}} messages",
+    "loadConversation": "Charger cette conversation",
+    "createdAt": "Créée le",
+    "updatedAt": "Mise à jour le"
   },
   "home": {
     "title": "Accueil",

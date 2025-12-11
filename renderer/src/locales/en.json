@@ -3,8 +3,21 @@
     "title": "My Electron App",
     "nav": {
       "home": "Home",
-      "jokes": "Jokes"
+      "jokes": "Jokes",
+      "chat": "Chat LLM",
+      "history": "History"
     }
+  },
+  "history": {
+    "title": "Conversation History",
+    "emptyState": "No conversations yet",
+    "emptyStateDescription": "Conversations you create will appear here",
+    "lastMessage": "Last message",
+    "messagesCount": "{{count}} message",
+    "messagesCount_plural": "{{count}} messages",
+    "loadConversation": "Load this conversation",
+    "createdAt": "Created on",
+    "updatedAt": "Updated on"
   },
   "home": {
     "title": "Home",

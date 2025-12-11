@@ -145,6 +145,12 @@ contextBridge.exposeInMainWorld("api", {
             body: JSON.stringify(payload),
         }),
         getSession: (id) => apiFetch(`/api/chat/session/${id}`),
+        listSessions: (profileId) => {
+            const endpoint = profileId 
+                ? `/api/chat/sessions?profileId=${encodeURIComponent(profileId)}`
+                : '/api/chat/sessions';
+            return apiFetch(endpoint);
+        },
         sendMessageStream: (payload, onEvent, abortSignal) => apiFetchStream('/api/chat/send-stream', {
             method: 'POST',
             body: JSON.stringify(payload),

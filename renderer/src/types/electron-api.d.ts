@@ -29,6 +29,10 @@ export interface SendMessageResponse {
   ragUsed?: boolean
 }
 
+export interface ListSessionsResponse {
+  sessions: ChatSession[]
+}
+
 // Profile API types
 export interface RAGSettings {
   topK: number
@@ -134,6 +138,7 @@ declare global {
         abortSignal?: AbortSignal,
       ) => Promise<void>
       getSession: (id: string) => Promise<ChatSession>
+      listSessions: (profileId?: string) => Promise<ListSessionsResponse>
     }
     profile: {
       list: () => Promise<ListProfilesResponse>

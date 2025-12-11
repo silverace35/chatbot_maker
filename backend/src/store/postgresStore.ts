@@ -215,6 +215,80 @@ class PostgresStore implements IStore {
     };
   }
 
+  async listSessions(): Promise<ChatSession[]> {
+    const pool = this.getPool();
+    
+    // Get all sessions ordered by updated_at descending
+    const sessionQuery = 'SELECT id, profile_id, created_at, updated_at FROM chat_sessions ORDER BY updated_at DESC';
+    const sessionResult = await pool.query(sessionQuery);
+    
+    const sessions: ChatSession[] = [];
+    
+    for (const sessionRow of sessionResult.rows) {
+      // Get messages for each session
+      const messagesQuery = `
+        SELECT role, content, timestamp
+        FROM messages
+        WHERE session_id = $1
+        ORDER BY timestamp ASC
+      `;
+      const messagesResult = await pool.query(messagesQuery, [sessionRow.id]);
+      
+      const messages: Message[] = messagesResult.rows.map(row => ({
+        role: row.role,
+        content: row.content,
+        timestamp: new Date(row.timestamp),
+      }));
+
+      sessions.push({
+        id: sessionRow.id,
+        profileId: sessionRow.profile_id,
+        messages,
+        createdAt: new Date(sessionRow.created_at),
+        updatedAt: new Date(sessionRow.updated_at),
+      });
+    }
+    
+    return sessions;
+  }
+
+  async listSessionsByProfile(profileId: string): Promise<ChatSession[]> {
+    const pool = this.getPool();
+    
+    // Get sessions for a specific profile ordered by updated_at descending
+    const sessionQuery = 'SELECT id, profile_id, created_at, updated_at FROM chat_sessions WHERE profile_id = $1 ORDER BY updated_at DESC';
+    const sessionResult = await pool.query(sessionQuery, [profileId]);
+    
+    const sessions: ChatSession[] = [];
+    
+    for (const sessionRow of sessionResult.rows) {
+      // Get messages for each session
+      const messagesQuery = `
+        SELECT role, content, timestamp
+        FROM messages
+        WHERE session_id = $1
+        ORDER BY timestamp ASC
+      `;
+      const messagesResult = await pool.query(messagesQuery, [sessionRow.id]);
+      
+      const messages: Message[] = messagesResult.rows.map(row => ({
+        role: row.role,
+        content: row.content,
+        timestamp: new Date(row.timestamp),
+      }));
+
+      sessions.push({
+        id: sessionRow.id,
+        profileId: sessionRow.profile_id,
+        messages,
+        createdAt: new Date(sessionRow.created_at),
+        updatedAt: new Date(sessionRow.updated_at),
+      });
+    }
+    
+    return sessions;
+  }
+
   async updateSession(id: string, messages: Message[]): Promise<ChatSession | undefined> {
     const pool = this.getPool();
     const client = await pool.connect();

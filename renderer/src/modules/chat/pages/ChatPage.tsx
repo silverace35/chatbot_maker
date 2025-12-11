@@ -6,12 +6,18 @@ import ProfileSelector from '../components/ProfileSelector/ProfileSelector'
 import ProfileDialog from '../components/ProfileDialog/ProfileDialog'
 import { chatService } from '@/services/chat/chat.service'
 import { profileService } from '@/services/profile/profile.service'
-import type { ChatMessage } from '@/services/chat/chat.service.types'
+import type { ChatMessage, ChatSession } from '@/services/chat/chat.service.types'
 import type { Profile } from '@/services/profile/profile.service.types'
 import type { CreateProfileFormData } from './ChatPage.types'
 import type { ChatStreamHandle } from '@/services/chat/chat.service'
 
-export default function ChatPage() {
+interface ChatPageProps {
+  loadedSession?: ChatSession | null
+  loadedProfile?: Profile | null
+  onSessionCleared?: () => void
+}
+
+export default function ChatPage({ loadedSession, loadedProfile, onSessionCleared }: ChatPageProps) {
   // State
   const [profiles, setProfiles] = useState<Profile[]>([])
   const [selectedProfileId, setSelectedProfileId] = useState<string | null>(null)
@@ -28,6 +34,29 @@ export default function ChatPage() {
   useEffect(() => {
     loadProfiles()
   }, [])
+
+  // Handle loaded session from history
+  useEffect(() => {
+    if (loadedSession && loadedProfile) {
+      // Stop any ongoing stream
+      if (streamHandleRef.current) {
+        streamHandleRef.current.stop()
+        streamHandleRef.current = null
+      }
+      
+      // Load the conversation
+      setSelectedProfileId(loadedProfile.id)
+      setCurrentSessionId(loadedSession.id)
+      setMessages(loadedSession.messages as ChatMessage[])
+      setIsLoading(false)
+      setIsStreaming(false)
+      
+      // Clear the loaded session after processing
+      if (onSessionCleared) {
+        onSessionCleared()
+      }
+    }
+  }, [loadedSession, loadedProfile, onSessionCleared])
 
   const loadProfiles = async () => {
     try {
@@ -62,6 +91,14 @@ export default function ChatPage() {
   }
 
   const handleSelectProfile = (profileId: string) => {
+    // Stop any ongoing stream before changing profile
+    if (streamHandleRef.current) {
+      streamHandleRef.current.stop()
+      streamHandleRef.current = null
+      setIsStreaming(false)
+      setIsLoading(false)
+    }
+    
     setSelectedProfileId(profileId)
     // Reset session when changing profile
     setCurrentSessionId(null)
