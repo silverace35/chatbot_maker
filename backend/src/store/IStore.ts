@@ -17,6 +17,8 @@ export interface IStore {
   // Session methods
   createSession(profileId: string): Promise<ChatSession>;
   getSession(id: string): Promise<ChatSession | undefined>;
+  listSessions(): Promise<ChatSession[]>;
+  listSessionsByProfile(profileId: string): Promise<ChatSession[]>;
   updateSession(id: string, messages: Message[]): Promise<ChatSession | undefined>;
   addMessageToSession(sessionId: string, message: Message): Promise<ChatSession | undefined>;
 

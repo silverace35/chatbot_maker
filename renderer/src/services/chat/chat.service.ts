@@ -39,6 +39,19 @@ export const chatService = {
   },
 
   /**
+   * Liste toutes les sessions de chat ou les sessions d'un profil spécifique
+   * @param profileId - ID du profil (optionnel)
+   * @returns Liste des sessions
+   */
+  async listSessions(profileId?: string): Promise<ChatSession[]> {
+    if (!window.api?.chat?.listSessions) {
+      throw new Error('Chat API not available')
+    }
+    const response = await window.api.chat.listSessions(profileId)
+    return response.sessions
+  },
+
+  /**
    * Envoie un message avec streaming de la réponse
    * @param payload - Données du message
    * @param onEvent - Callback appelé pour chaque événement de stream

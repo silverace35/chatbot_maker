@@ -261,4 +261,26 @@ router.get('/session/:id', async (req: Request, res: Response) => {
   }
 });
 
+/**
+ * GET /api/chat/sessions
+ * Liste toutes les sessions de chat
+ */
+router.get('/sessions', async (req: Request, res: Response) => {
+  try {
+    const { profileId } = req.query;
+    
+    let sessions;
+    if (profileId && typeof profileId === 'string') {
+      sessions = await store.listSessionsByProfile(profileId);
+    } else {
+      sessions = await store.listSessions();
+    }
+
+    return res.json({ sessions });
+  } catch (error) {
+    console.error('Error in /api/chat/sessions:', error);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 export default router;

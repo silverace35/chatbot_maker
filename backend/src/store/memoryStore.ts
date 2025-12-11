@@ -70,6 +70,18 @@ class MemoryStore implements IStore {
     return this.sessions.get(id);
   }
 
+  async listSessions(): Promise<ChatSession[]> {
+    return Array.from(this.sessions.values()).sort(
+      (a, b) => b.updatedAt.getTime() - a.updatedAt.getTime()
+    );
+  }
+
+  async listSessionsByProfile(profileId: string): Promise<ChatSession[]> {
+    return Array.from(this.sessions.values())
+      .filter(s => s.profileId === profileId)
+      .sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime());
+  }
+
   async updateSession(id: string, messages: Message[]): Promise<ChatSession | undefined> {
     const session = this.sessions.get(id);
     if (!session) return undefined;

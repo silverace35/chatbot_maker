@@ -215,6 +215,54 @@ class PostgresStore implements IStore {
     };
   }
 
+  private async loadSessionMessages(sessionId: string, pool: Pool): Promise<Message[]> {
+    const messagesQuery = `
+      SELECT role, content, timestamp
+      FROM messages
+      WHERE session_id = $1
+      ORDER BY timestamp ASC
+    `;
+    const messagesResult = await pool.query(messagesQuery, [sessionId]);
+    
+    return messagesResult.rows.map(row => ({
+      role: row.role,
+      content: row.content,
+      timestamp: new Date(row.timestamp),
+    }));
+  }
+
+  private async loadSessionsFromRows(rows: any[], pool: Pool): Promise<ChatSession[]> {
+    const sessions: ChatSession[] = [];
+    
+    for (const sessionRow of rows) {
+      const messages = await this.loadSessionMessages(sessionRow.id, pool);
+
+      sessions.push({
+        id: sessionRow.id,
+        profileId: sessionRow.profile_id,
+        messages,
+        createdAt: new Date(sessionRow.created_at),
+        updatedAt: new Date(sessionRow.updated_at),
+      });
+    }
+    
+    return sessions;
+  }
+
+  async listSessions(): Promise<ChatSession[]> {
+    const pool = this.getPool();
+    const sessionQuery = 'SELECT id, profile_id, created_at, updated_at FROM chat_sessions ORDER BY updated_at DESC';
+    const sessionResult = await pool.query(sessionQuery);
+    return this.loadSessionsFromRows(sessionResult.rows, pool);
+  }
+
+  async listSessionsByProfile(profileId: string): Promise<ChatSession[]> {
+    const pool = this.getPool();
+    const sessionQuery = 'SELECT id, profile_id, created_at, updated_at FROM chat_sessions WHERE profile_id = $1 ORDER BY updated_at DESC';
+    const sessionResult = await pool.query(sessionQuery, [profileId]);
+    return this.loadSessionsFromRows(sessionResult.rows, pool);
+  }
+
   async updateSession(id: string, messages: Message[]): Promise<ChatSession | undefined> {
     const pool = this.getPool();
     const client = await pool.connect();

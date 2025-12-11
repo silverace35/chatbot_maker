@@ -4,8 +4,24 @@
     "nav": {
       "home": "Accueil",
       "jokes": "Blagues",
-      "chat": "Chat LLM"
+      "chat": "Chat LLM",
+      "history": "Historique"
     }
+  },
+  "history": {
+    "title": "Historique des conversations",
+    "emptyState": "Aucune conversation pour le moment",
+    "emptyStateDescription": "Les conversations que vous créerez apparaîtront ici",
+    "lastMessage": "Dernier message",
+    "messagesCount": "{{count}} message",
+    "messagesCount_plural": "{{count}} messages",
+    "loadConversation": "Charger cette conversation",
+    "createdAt": "Créée le",
+    "updatedAt": "Mise à jour le",
+    "loading": "Chargement de l'historique...",
+    "error": "Erreur lors du chargement de l'historique. Vérifiez que le backend est démarré.",
+    "conversationsCount": "{{count}} conversation",
+    "conversationsCount_plural": "{{count}} conversations"
   },
   "home": {
     "title": "Accueil",
