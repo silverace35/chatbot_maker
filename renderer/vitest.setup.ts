@@ -1,6 +1,10 @@
 import '@testing-library/jest-dom/vitest'
 import { vi } from 'vitest'
 
+// Mock pour scrollTo qui n'existe pas dans JSDOM
+Element.prototype.scrollTo = vi.fn()
+window.scrollTo = vi.fn()
+
 declare global {
   interface Window {
     api: typeof apiMock
