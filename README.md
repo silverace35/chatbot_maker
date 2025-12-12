@@ -70,9 +70,20 @@ electron-init/
 
 ### 2.1. Prérequis
 
-- Node.js 18 ou supérieur
-- npm
-- Docker et Docker Compose pour Postgres et Ollama (Attention aux ports utilisés)
+| Outil | Version recommandée | Notes |
+|-------|---------------------|-------|
+| Node.js | 18+ (LTS) | [nodejs.org](https://nodejs.org/) |
+| npm | 9+ | Inclus avec Node.js |
+| Docker Desktop | 4.x+ | Avec support GPU activé si GPU NVIDIA |
+| GPU NVIDIA (optionnel) | Driver 525+ | Pour accélération LLM |
+
+**Vérifier les versions installées :**
+```bash
+node --version   # doit afficher v18.x.x ou supérieur
+npm --version    # doit afficher 9.x.x ou supérieur
+docker --version # doit afficher Docker version 24.x.x ou supérieur
+nvidia-smi       # (optionnel) vérifie le driver GPU
+```
 
 ### 2.2. Installation des dépendances
 
@@ -136,18 +147,44 @@ Si vous n'avez pas de GPU NVIDIA, commentez la section `deploy` dans `docker-com
     #           capabilities: [gpu]
 ```
 
-#### Variables d'environnement
+#### Variables d'environnement Docker
 
 Créez un fichier `.env` à la racine (voir `.env.docker.example`) :
 
 | Variable | Défaut | Description |
 |----------|--------|-------------|
+| `POSTGRES_DB` | electron_chat | Nom de la base de données |
+| `POSTGRES_USER` | electron_user | Utilisateur PostgreSQL |
+| `POSTGRES_PASSWORD` | electron_password | Mot de passe PostgreSQL |
 | `POSTGRES_PORT` | 15432 | Port PostgreSQL |
 | `OLLAMA_PORT` | 11434 | Port Ollama |
-| `OLLAMA_NUM_PARALLEL` | 4 | Requêtes LLM simultanées |
-| `OLLAMA_MAX_LOADED_MODELS` | 2 | Modèles en mémoire GPU |
+| `OLLAMA_NUM_PARALLEL` | 1 | Requêtes LLM simultanées |
+| `OLLAMA_MAX_LOADED_MODELS` | 1 | Modèles en mémoire GPU |
 | `OLLAMA_DEFAULT_MODEL` | llama3.1:8b | Modèle de chat par défaut |
 | `QDRANT_PORT` | 6333 | Port Qdrant HTTP |
+| `QDRANT_GRPC_PORT` | 6334 | Port Qdrant gRPC |
+
+#### Variables d'environnement Backend
+
+Créez un fichier `.env` dans le dossier `backend/` (voir `backend/.env.example`) :
+
+| Variable | Défaut | Description |
+|----------|--------|-------------|
+| `PORT` | 4000 | Port du serveur backend |
+| `STORE_MODE` | postgres | Mode de stockage : `memory` ou `postgres` |
+| `DB_HOST` | localhost | Hôte PostgreSQL |
+| `DB_PORT` | 15432 | Port PostgreSQL |
+| `DB_NAME` | electron_chat | Nom de la base de données |
+| `DB_USER` | electron_user | Utilisateur PostgreSQL |
+| `DB_PASSWORD` | electron_password | Mot de passe PostgreSQL |
+| `OLLAMA_ENABLED` | true | Activer/désactiver Ollama |
+| `OLLAMA_URL` | http://localhost:11434 | URL du service Ollama |
+| `OLLAMA_DEFAULT_MODEL` | llama3.1:8b | Modèle LLM par défaut |
+| `OLLAMA_TIMEOUT_MS` | 120000 | Timeout des requêtes Ollama (ms) |
+| `OLLAMA_WARMUP` | true | Précharger le modèle au démarrage |
+| `LLM_MAX_HISTORY` | 16 | Nombre de messages historiques envoyés au LLM |
+| `EMBEDDING_PROVIDER` | ollama | Provider d'embeddings |
+| `EMBEDDING_MODEL` | nomic-embed-text | Modèle d'embeddings (768 dimensions) |
 
 #### Commandes utiles
 
@@ -352,4 +389,30 @@ docker logs -f electron-chat-ollama-init
 ```
 
 Pour des détails plus fins sur les choix d'implémentation, consultez `MVP_PLAN.md` et `PHASE2_GUIDE.md` à la racine du projet.
+
+---
+
+## 9. Documentation technique
+
+| Document | Description |
+|----------|-------------|
+| [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | Architecture macro du projet avec diagrammes Mermaid |
+| [`docs/DATABASE_MPD.md`](docs/DATABASE_MPD.md) | Modèle Physique de Données (MPD) - Schéma complet de la base PostgreSQL |
+| `MVP_PLAN.md` | Plan d'implémentation du MVP |
+| `PHASE2_GUIDE.md` | Guide de la phase 2 du projet |
+
+---
+
+## 10. Ports utilisés
+
+| Service | Port | URL |
+|---------|------|-----|
+| Backend Express | 4000 | http://localhost:4000 |
+| Frontend Vite (dev) | 5173 | http://localhost:5173 |
+| PostgreSQL | 15432 | localhost:15432 |
+| Ollama | 11434 | http://localhost:11434 |
+| Qdrant HTTP | 6333 | http://localhost:6333 |
+| Qdrant gRPC | 6334 | localhost:6334 |
+
+> ⚠️ **Note** : Assurez-vous que ces ports ne sont pas utilisés par d'autres applications avant de démarrer les services.
 
