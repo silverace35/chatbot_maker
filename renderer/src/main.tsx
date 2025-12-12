@@ -3,6 +3,8 @@ import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './App'
 import { ThemeProvider } from './theme/ThemeContext'
+import { NotificationProvider } from './contexts/NotificationContext'
+import { ConfirmationProvider } from './contexts/ConfirmationContext'
 import { BrowserRouter } from 'react-router-dom'
 import './i18n'
 
@@ -15,9 +17,13 @@ if (!container) {
 createRoot(container).render(
   <StrictMode>
     <ThemeProvider>
-      <BrowserRouter>
-        <App />
-      </BrowserRouter>
+      <NotificationProvider>
+        <ConfirmationProvider>
+          <BrowserRouter>
+            <App />
+          </BrowserRouter>
+        </ConfirmationProvider>
+      </NotificationProvider>
     </ThemeProvider>
   </StrictMode>,
 )

@@ -1,0 +1,9 @@
+{
+  "model": "llama3.1:8b",
+  "prompt": "Say hello",
+  "stream": false,
+  "options": {
+    "num_predict": 5
+  }
+}
+

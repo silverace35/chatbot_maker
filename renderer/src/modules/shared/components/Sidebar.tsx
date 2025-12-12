@@ -56,7 +56,7 @@ export default function Sidebar({ currentTab, onTabChange }: SidebarProps) {
         flexShrink: 0,
         display: 'flex',
         flexDirection: 'column',
-        height: '100vh',
+        height: '100%', // Changé de 100vh à 100% pour s'adapter au conteneur parent
         borderRight: `1px solid ${theme.palette.divider}`,
         backgroundColor: theme.palette.mode === 'dark'
           ? alpha(theme.palette.grey[900], 0.7)

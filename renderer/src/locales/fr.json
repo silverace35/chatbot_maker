@@ -21,7 +21,8 @@
     "loading": "Chargement de l'historique...",
     "error": "Erreur lors du chargement de l'historique. Vérifiez que le backend est démarré.",
     "conversationsCount": "{{count}} conversation",
-    "conversationsCount_plural": "{{count}} conversations"
+    "conversationsCount_plural": "{{count}} conversations",
+    "refresh": "Rafraîchir"
   },
   "home": {
     "title": "Accueil",

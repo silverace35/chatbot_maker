@@ -507,13 +507,23 @@ export class OllamaService {
 
       try {
         while (true) {
-          if (externalSignal?.aborted) {
-            break;
+          // Vérifier l'annulation AVANT de lire
+          if (externalSignal?.aborted || controller.signal.aborted) {
+            console.log('[OllamaService] Stream aborted by client, cancelling reader...');
+            await reader.cancel('Client aborted');
+            return;
           }
 
           const { value, done } = await reader.read();
           if (done) {
             break;
+          }
+
+          // Vérifier l'annulation APRÈS la lecture aussi
+          if (externalSignal?.aborted || controller.signal.aborted) {
+            console.log('[OllamaService] Stream aborted by client after read, cancelling...');
+            await reader.cancel('Client aborted');
+            return;
           }
 
           const text = decoder.decode(value, { stream: true });
@@ -539,10 +549,19 @@ export class OllamaService {
           }
         }
       } finally {
+        // S'assurer que le reader est annulé si le signal a été aborté
+        if (externalSignal?.aborted || controller.signal.aborted) {
+          try {
+            await reader.cancel('Cleanup after abort');
+          } catch {
+            // Ignorer les erreurs de cancel
+          }
+        }
         reader.releaseLock();
       }
     } catch (error) {
       if ((error as any).name === 'AbortError' || externalSignal?.aborted) {
+        console.log('[OllamaService] Stream aborted or timed out');
         // Annulation ou timeout : on arrête silencieusement le stream
         return;
       }

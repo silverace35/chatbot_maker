@@ -421,4 +421,86 @@ router.post('/:profileId/rag/search', async (req: Request, res: Response) => {
   }
 });
 
+/**
+ * GET /api/profile/:profileId/rag/debug
+ * Debug endpoint to check RAG status and Qdrant collection
+ */
+router.get('/:profileId/rag/debug', async (req: Request, res: Response) => {
+  const { profileId } = req.params;
+
+  try {
+    const store = getStore();
+    const profile = await store.getProfile(profileId);
+
+    if (!profile) {
+      return res.status(404).json({ error: 'Profile not found' });
+    }
+
+    const resources = await store.listResources(profileId);
+
+    // Try to get collection info from Qdrant
+    const { QdrantClient } = await import('@qdrant/js-client-rest');
+    const qdrantUrl = process.env.QDRANT_URL || 'http://localhost:6333';
+    const client = new QdrantClient({ url: qdrantUrl });
+
+    const embeddingModel = profile.embeddingModelId || 'nomic-embed-text';
+    const collectionName = `profile_${profileId}_${embeddingModel}`;
+
+    let collectionInfo = null;
+    let collectionError = null;
+    let samplePoints: any[] = [];
+
+    try {
+      collectionInfo = await client.getCollection(collectionName);
+
+      // Get sample points
+      const scrollResult = await client.scroll(collectionName, {
+        limit: 3,
+        with_payload: true,
+        with_vector: false,
+      });
+      samplePoints = scrollResult.points.map(p => ({
+        id: p.id,
+        content: (p.payload as any)?.content?.substring(0, 200) + '...',
+        originalName: (p.payload as any)?.metadata?.originalName,
+      }));
+    } catch (err: any) {
+      collectionError = err.message || String(err);
+    }
+
+    return res.json({
+      profile: {
+        id: profile.id,
+        name: profile.name,
+        ragEnabled: profile.ragEnabled,
+        indexStatus: profile.indexStatus,
+        embeddingModelId: profile.embeddingModelId,
+        ragSettings: profile.ragSettings,
+      },
+      resources: resources.map(r => ({
+        id: r.id,
+        name: r.originalName,
+        type: r.type,
+        indexed: r.indexed,
+        sizeBytes: r.sizeBytes,
+      })),
+      qdrant: {
+        url: qdrantUrl,
+        collectionName,
+        collectionExists: collectionInfo !== null,
+        pointsCount: collectionInfo?.points_count || 0,
+        indexedVectorsCount: collectionInfo?.indexed_vectors_count || 0,
+        error: collectionError,
+        samplePoints,
+      },
+    });
+  } catch (error) {
+    logger.error('RAG debug failed', {
+      profileId,
+      error: error instanceof Error ? error.message : String(error),
+    });
+    return res.status(500).json({ error: error instanceof Error ? error.message : 'Internal server error' });
+  }
+});
+
 export default router;

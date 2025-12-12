@@ -3,11 +3,11 @@ services:
     image: postgres:16-alpine
     container_name: electron-chat-postgres
     environment:
-      POSTGRES_DB: electron_chat
-      POSTGRES_USER: electron_user
-      POSTGRES_PASSWORD: electron_password
+      POSTGRES_DB: ${POSTGRES_DB:-electron_chat}
+      POSTGRES_USER: ${POSTGRES_USER:-electron_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-electron_password}
     ports:
-      - "15432:5432"
+      - "${POSTGRES_PORT:-15432}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./backend/database/init.sql:/docker-entrypoint-initdb.d/init.sql
@@ -17,16 +17,26 @@ services:
       timeout: 5s
       retries: 5
 
-  # Ollama service - Phase 2.2 & embeddings
-  # To use real embeddings, you need to pull an embedding model:
-  # docker exec -it electron-chat-ollama ollama pull nomic-embed-text
+  # Ollama service avec GPU NVIDIA par défaut
+  # Pour utiliser en mode CPU uniquement, commentez la section 'deploy'
   ollama:
     image: ollama/ollama:latest
     container_name: electron-chat-ollama
     ports:
-      - "11434:11434"
+      - "${OLLAMA_PORT:-11434}:11434"
     volumes:
       - ollama_data:/root/.ollama
+    environment:
+      # Un seul LLM à la fois pour éviter les problèmes de concurrence
+      - OLLAMA_NUM_PARALLEL=${OLLAMA_NUM_PARALLEL:-1}
+      - OLLAMA_MAX_LOADED_MODELS=${OLLAMA_MAX_LOADED_MODELS:-1}
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "pgrep", "-f", "ollama"]
@@ -34,13 +44,8 @@ services:
       timeout: 3s
       retries: 5
       start_period: 5s
-    # Uncomment when ready to use Ollama
-    # profiles:
-    #   - phase2
 
-  # Ollama initialization service - automatically pulls the default model
-  # Note: This only pulls the chat model, not the embedding model
-  # For embeddings, manually pull: docker exec -it electron-chat-ollama ollama pull nomic-embed-text
+  # Ollama initialization - télécharge automatiquement les modèles
   ollama-init:
     build:
       context: .
@@ -52,25 +57,19 @@ services:
     volumes:
       - ollama_data:/root/.ollama
     environment:
-      OLLAMA_DEFAULT_MODEL: "llama3.1:8b"
+      OLLAMA_DEFAULT_MODEL: "${OLLAMA_DEFAULT_MODEL:-llama3.1:8b}"
       OLLAMA_HOST: "ollama:11434"
     restart: "no"
-    # Uncomment when ready to use Ollama
-    # profiles:
-    #   - phase2
 
-  # Qdrant service - Phase 2.3
+  # Qdrant service - Vector Store
   qdrant:
     image: qdrant/qdrant:latest
     container_name: electron-chat-qdrant
     ports:
-      - "6333:6333"
-      - "6334:6334"
+      - "${QDRANT_PORT:-6333}:6333"
+      - "${QDRANT_GRPC_PORT:-6334}:6334"
     volumes:
       - qdrant_data:/qdrant/storage
-    # Uncomment when ready to use Qdrant
-    profiles:
-      - phase2
 
 volumes:
   postgres_data:

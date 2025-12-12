@@ -21,7 +21,8 @@
     "loading": "Loading history...",
     "error": "Error loading history. Please check that the backend is running.",
     "conversationsCount": "{{count}} conversation",
-    "conversationsCount_plural": "{{count}} conversations"
+    "conversationsCount_plural": "{{count}} conversations",
+    "refresh": "Refresh"
   },
   "home": {
     "title": "Home",

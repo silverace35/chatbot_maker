@@ -1,7 +1,12 @@
 import { Router, Request, Response } from 'express';
 import { store } from '../store';
 import { CreateProfilePayload, UpdateProfilePayload } from '../models/profile';
+import { ragService } from '../services/ragService';
+import { fileStorageService } from '../services/fileStorageService';
+import { vectorStoreService, getCollectionName } from '../services/vectorStoreService';
+import { createLogger } from '../services/logger';
 
+const logger = createLogger('ProfileRoutes');
 const router = Router();
 
 /**
@@ -89,6 +94,120 @@ router.patch('/:id', async (req: Request, res: Response) => {
     return res.json(profile);
   } catch (error) {
     console.error('Error in PATCH /api/profile/:id:', error);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+/**
+ * DELETE /api/profile/:id
+ * Supprime un profil et toutes ses ressources associées
+ */
+router.delete('/:id', async (req: Request, res: Response) => {
+  const { id } = req.params;
+
+  try {
+    logger.info('Delete profile request received', { profileId: id });
+
+    // Vérifier que le profil existe
+    const profile = await store.getProfile(id);
+    if (!profile) {
+      return res.status(404).json({ error: 'Profile not found' });
+    }
+
+    logger.info('Deleting profile', {
+      profileId: id,
+      profileName: profile.name,
+      ragEnabled: profile.ragEnabled,
+    });
+
+    // 1. Supprimer les ressources et leurs index
+    const resources = await store.listResources(id);
+    logger.info('Deleting profile resources', {
+      profileId: id,
+      resourceCount: resources.length,
+    });
+
+    for (const resource of resources) {
+      try {
+        // Supprimer l'index de la ressource
+        await ragService.deleteResourceIndex(resource.id);
+
+        // Supprimer le fichier du disque
+        try {
+          await fileStorageService.deleteFile(resource.contentPath);
+        } catch (fileError) {
+          logger.warn('Could not delete resource file (may not exist)', {
+            profileId: id,
+            resourceId: resource.id,
+            contentPath: resource.contentPath,
+            error: fileError instanceof Error ? fileError.message : String(fileError),
+          });
+        }
+
+        // Supprimer l'enregistrement de la ressource
+        await store.deleteResource(resource.id);
+      } catch (resourceError) {
+        logger.error('Error deleting resource', {
+          profileId: id,
+          resourceId: resource.id,
+          error: resourceError instanceof Error ? resourceError.message : String(resourceError),
+        });
+        // Continue avec les autres ressources
+      }
+    }
+
+    // 2. Supprimer la collection Qdrant si RAG était activé
+    if (profile.ragEnabled && profile.embeddingModelId) {
+      try {
+        const collectionName = getCollectionName(id, profile.embeddingModelId);
+        await vectorStoreService.deleteCollection(collectionName);
+        logger.info('Deleted Qdrant collection', {
+          profileId: id,
+          collectionName,
+        });
+      } catch (qdrantError) {
+        logger.warn('Could not delete Qdrant collection (may not exist)', {
+          profileId: id,
+          error: qdrantError instanceof Error ? qdrantError.message : String(qdrantError),
+        });
+      }
+    }
+
+    // 3. Supprimer les sessions de chat associées
+    const sessions = await store.listSessionsByProfile(id);
+    logger.info('Deleting profile sessions', {
+      profileId: id,
+      sessionCount: sessions.length,
+    });
+    // Note: Les sessions seront supprimées en cascade si la DB le supporte,
+    // sinon on les supprime manuellement si nécessaire
+
+    // 4. Supprimer le dossier du profil
+    try {
+      await fileStorageService.deleteProfileFiles(id);
+      logger.info('Deleted profile files directory', { profileId: id });
+    } catch (dirError) {
+      logger.warn('Could not delete profile directory (may not exist)', {
+        profileId: id,
+        error: dirError instanceof Error ? dirError.message : String(dirError),
+      });
+    }
+
+    // 5. Supprimer le profil lui-même
+    await store.deleteProfile(id);
+
+    logger.info('Profile deleted successfully', {
+      profileId: id,
+      profileName: profile.name,
+    });
+
+    return res.status(204).send();
+  } catch (error) {
+    logger.error('Profile deletion failed', {
+      profileId: id,
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+    });
     return res.status(500).json({ error: 'Internal server error' });
   }
 });

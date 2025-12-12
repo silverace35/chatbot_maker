@@ -31,7 +31,6 @@ export default function ChatPage({ loadedSession, loadedProfile, onSessionCleare
   const [error, setError] = useState<string | null>(null)
   const [isStreaming, setIsStreaming] = useState(false)
   const streamHandleRef = useRef<ChatStreamHandle | null>(null)
-  const streamingGenerationIdRef = useRef<number | null>(null)
 
   // Load profiles on mount
   useEffect(() => {
@@ -80,31 +79,30 @@ export default function ChatPage({ loadedSession, loadedProfile, onSessionCleare
   const handleSelectProfile = (profileId: string) => {
     // Si on change de profil, on reset la conversation
     if (profileId !== selectedProfileId) {
-      // Stop any ongoing stream before changing profile
-      if (streamHandleRef.current) {
-        streamHandleRef.current.stop()
-        streamHandleRef.current = null
-        setIsStreaming(false)
-        setIsLoading(false)
+      // Ne pas changer de profil si une génération est en cours
+      if (isStreaming || isLoading) {
+        setError("Veuillez attendre la fin de la génération avant de changer de profil.")
+        return
       }
 
       setSelectedProfileId(profileId)
       // Reset session when changing profile
       setCurrentSessionId(null)
       setMessages([])
+      setError(null)
     }
   }
 
   const handleNewConversation = () => {
-    // Stop any ongoing stream
-    if (streamHandleRef.current) {
-      streamHandleRef.current.stop()
-      streamHandleRef.current = null
-      setIsStreaming(false)
-      setIsLoading(false)
+    // Ne pas créer de nouvelle conversation si une génération est en cours
+    if (isStreaming || isLoading) {
+      setError("Veuillez attendre la fin de la génération.")
+      return
     }
+
     setCurrentSessionId(null)
     setMessages([])
+    setError(null)
   }
 
   const handleSendMessage = async (message: string) => {
@@ -113,24 +111,24 @@ export default function ChatPage({ loadedSession, loadedProfile, onSessionCleare
       return
     }
 
+    // Bloquer si une génération est déjà en cours
+    if (isStreaming || isLoading) {
+      console.log('[ChatPage] Generation already in progress, ignoring')
+      return
+    }
+
     try {
       setIsLoading(true)
       setIsStreaming(true)
       setError(null)
 
+      // Ajouter le message utilisateur temporairement à l'UI
       const tempUserMessage: ChatMessage = {
         role: 'user',
         content: message,
         timestamp: new Date().toISOString(),
       }
       setMessages((prev) => [...prev, tempUserMessage])
-
-      if (streamHandleRef.current) {
-        streamHandleRef.current.stop()
-      }
-
-      const generationId = Date.now()
-      streamingGenerationIdRef.current = generationId
 
       const handle = chatService.sendMessageStream(
         {
@@ -139,10 +137,6 @@ export default function ChatPage({ loadedSession, loadedProfile, onSessionCleare
           message,
         },
         (event) => {
-          if (streamingGenerationIdRef.current !== generationId) {
-            return
-          }
-
           if (event.type === 'chunk') {
             const chunk = event.content ?? ''
             if (!chunk) return
@@ -150,24 +144,19 @@ export default function ChatPage({ loadedSession, loadedProfile, onSessionCleare
             setMessages((prev) => {
               const last = prev[prev.length - 1]
               if (last && last.role === 'assistant') {
-                const updated: ChatMessage = {
-                  ...last,
-                  content: last.content + chunk,
-                }
-                return [...prev.slice(0, -1), updated]
+                return [...prev.slice(0, -1), { ...last, content: last.content + chunk }]
               }
-
-              const newAssistant: ChatMessage = {
-                role: 'assistant',
+              return [...prev, {
+                role: 'assistant' as const,
                 content: chunk,
                 timestamp: new Date().toISOString(),
-              }
-              return [...prev, newAssistant]
+              }]
             })
           }
 
           if (event.type === 'done') {
-            if (!currentSessionId && event.sessionId) {
+            console.log('[ChatPage] Stream completed')
+            if (event.sessionId) {
               setCurrentSessionId(event.sessionId)
             }
             if (event.messages && event.messages.length > 0) {
@@ -175,22 +164,26 @@ export default function ChatPage({ loadedSession, loadedProfile, onSessionCleare
             }
             setIsLoading(false)
             setIsStreaming(false)
-            streamingGenerationIdRef.current = null
+            streamHandleRef.current = null
+          }
+
+          if (event.type === 'aborted') {
+            // Ne devrait plus arriver car on ne permet plus d'arrêter
+            console.log('[ChatPage] Stream aborted (unexpected)')
+            setIsLoading(false)
+            setIsStreaming(false)
             streamHandleRef.current = null
           }
 
           if (event.type === 'error') {
             const baseError = event.error || "Erreur lors de l'envoi du message."
-            const isFirstMessageOfSession = !currentSessionId
-
             setError(
-              isFirstMessageOfSession
-                ? `${baseError} Le modèle local peut être en cours de chargement ou indisponible. Réessayez dans quelques secondes.`
+              !currentSessionId
+                ? `${baseError} Le modèle local peut être en cours de chargement. Réessayez dans quelques secondes.`
                 : baseError,
             )
             setIsLoading(false)
             setIsStreaming(false)
-            streamingGenerationIdRef.current = null
             streamHandleRef.current = null
           }
         },
@@ -207,15 +200,6 @@ export default function ChatPage({ loadedSession, loadedProfile, onSessionCleare
     }
   }
 
-  const handleStopStreaming = () => {
-    if (streamHandleRef.current) {
-      streamHandleRef.current.stop()
-      streamHandleRef.current = null
-    }
-    streamingGenerationIdRef.current = null
-    setIsLoading(false)
-    setIsStreaming(false)
-  }
 
   const selectedProfile = profiles.find((p) => p.id === selectedProfileId)
 
@@ -336,7 +320,6 @@ export default function ChatPage({ loadedSession, loadedProfile, onSessionCleare
       {/* Input Area */}
       <ChatInput
         onSubmit={handleSendMessage}
-        onStop={handleStopStreaming}
         isStreaming={isStreaming}
         disabled={isLoading || !selectedProfileId}
         placeholder={

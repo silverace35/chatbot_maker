@@ -13,6 +13,7 @@ export interface IStore {
   getProfile(id: string): Promise<Profile | undefined>;
   listProfiles(): Promise<Profile[]>;
   updateProfile(id: string, payload: UpdateProfilePayload): Promise<Profile | undefined>;
+  deleteProfile(id: string): Promise<void>;
 
   // Session methods
   createSession(profileId: string): Promise<ChatSession>;

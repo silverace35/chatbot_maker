@@ -53,6 +53,10 @@ class MemoryStore implements IStore {
     return profile;
   }
 
+  async deleteProfile(id: string): Promise<void> {
+    this.profiles.delete(id);
+  }
+
   // Session methods
   async createSession(profileId: string): Promise<ChatSession> {
     const session: ChatSession = {
@@ -67,19 +71,50 @@ class MemoryStore implements IStore {
   }
 
   async getSession(id: string): Promise<ChatSession | undefined> {
-    return this.sessions.get(id);
+    const session = this.sessions.get(id);
+    if (!session) return undefined;
+
+    // Trier les messages par timestamp pour garantir l'ordre correct
+    // même si les messages ont été ajoutés dans le désordre (requêtes parallèles)
+    const sortedMessages = [...session.messages].sort((a, b) => {
+      const timeA = a.timestamp instanceof Date ? a.timestamp.getTime() : new Date(a.timestamp).getTime();
+      const timeB = b.timestamp instanceof Date ? b.timestamp.getTime() : new Date(b.timestamp).getTime();
+      return timeA - timeB;
+    });
+
+    return {
+      ...session,
+      messages: sortedMessages,
+    };
   }
 
   async listSessions(): Promise<ChatSession[]> {
-    return Array.from(this.sessions.values()).sort(
-      (a, b) => b.updatedAt.getTime() - a.updatedAt.getTime()
-    );
+    const sessions = Array.from(this.sessions.values());
+
+    // Trier les messages de chaque session par timestamp
+    return sessions.map(session => ({
+      ...session,
+      messages: [...session.messages].sort((a, b) => {
+        const timeA = a.timestamp instanceof Date ? a.timestamp.getTime() : new Date(a.timestamp).getTime();
+        const timeB = b.timestamp instanceof Date ? b.timestamp.getTime() : new Date(b.timestamp).getTime();
+        return timeA - timeB;
+      }),
+    })).sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime());
   }
 
   async listSessionsByProfile(profileId: string): Promise<ChatSession[]> {
-    return Array.from(this.sessions.values())
-      .filter(s => s.profileId === profileId)
-      .sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime());
+    const sessions = Array.from(this.sessions.values())
+      .filter(s => s.profileId === profileId);
+
+    // Trier les messages de chaque session par timestamp
+    return sessions.map(session => ({
+      ...session,
+      messages: [...session.messages].sort((a, b) => {
+        const timeA = a.timestamp instanceof Date ? a.timestamp.getTime() : new Date(a.timestamp).getTime();
+        const timeB = b.timestamp instanceof Date ? b.timestamp.getTime() : new Date(b.timestamp).getTime();
+        return timeA - timeB;
+      }),
+    })).sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime());
   }
 
   async updateSession(id: string, messages: Message[]): Promise<ChatSession | undefined> {

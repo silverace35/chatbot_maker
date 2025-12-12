@@ -153,6 +153,11 @@ class PostgresStore implements IStore {
     };
   }
 
+  async deleteProfile(id: string): Promise<void> {
+    const pool = this.getPool();
+    await pool.query('DELETE FROM profiles WHERE id = $1', [id]);
+  }
+
   // Session methods
   async createSession(profileId: string): Promise<ChatSession> {
     const pool = this.getPool();

@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react'
-import { Box, Typography, CircularProgress, Alert, useTheme, alpha } from '@mui/material'
+import { useState, useEffect, useRef, useCallback } from 'react'
+import { Box, Typography, CircularProgress, Alert, useTheme, alpha, IconButton, Tooltip } from '@mui/material'
 import HistoryIcon from '@mui/icons-material/History'
+import RefreshIcon from '@mui/icons-material/Refresh'
 import { useTranslation } from 'react-i18next'
 import { chatService } from '@/services/chat/chat.service'
 import { profileService } from '@/services/profile/profile.service'
@@ -20,14 +21,14 @@ export default function HistoryPage({ onLoadConversation }: HistoryPageProps) {
   const [profiles, setProfiles] = useState<Profile[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const pollingRef = useRef<NodeJS.Timeout | null>(null)
+  const isMountedRef = useRef(true)
 
-  useEffect(() => {
-    loadData()
-  }, [])
-
-  const loadData = async () => {
+  const loadData = useCallback(async (showLoading = false) => {
     try {
-      setIsLoading(true)
+      if (showLoading) {
+        setIsLoading(true)
+      }
       setError(null)
 
       // Load both sessions and profiles in parallel
@@ -36,14 +37,45 @@ export default function HistoryPage({ onLoadConversation }: HistoryPageProps) {
         profileService.listProfiles(),
       ])
 
-      setSessions(loadedSessions)
-      setProfiles(loadedProfiles)
+      if (isMountedRef.current) {
+        setSessions(loadedSessions)
+        setProfiles(loadedProfiles)
+      }
     } catch (err) {
       console.error('Error loading history:', err)
-      setError(t('history.error'))
+      if (isMountedRef.current) {
+        setError(t('history.error'))
+      }
     } finally {
-      setIsLoading(false)
+      if (isMountedRef.current) {
+        setIsLoading(false)
+      }
     }
+  }, [t])
+
+  // Chargement initial et polling
+  useEffect(() => {
+    isMountedRef.current = true
+    loadData(true)
+
+    // Polling toutes les 3 secondes pour mettre à jour l'historique
+    pollingRef.current = setInterval(() => {
+      if (isMountedRef.current) {
+        loadData(false) // Sans afficher le loading
+      }
+    }, 3000)
+
+    return () => {
+      isMountedRef.current = false
+      if (pollingRef.current) {
+        clearInterval(pollingRef.current)
+        pollingRef.current = null
+      }
+    }
+  }, [loadData])
+
+  const handleRefresh = () => {
+    loadData(true)
   }
 
   const handleLoadConversation = (session: ChatSession) => {
@@ -115,9 +147,16 @@ export default function HistoryPage({ onLoadConversation }: HistoryPageProps) {
           >
             <HistoryIcon sx={{ color: theme.palette.primary.main }} />
           </Box>
-          <Typography variant="h4" fontWeight={700}>
-            {t('history.title')}
-          </Typography>
+          <Box sx={{ flex: 1 }}>
+            <Typography variant="h4" fontWeight={700}>
+              {t('history.title')}
+            </Typography>
+          </Box>
+          <Tooltip title={t('history.refresh') || 'Rafraîchir'}>
+            <IconButton onClick={handleRefresh} disabled={isLoading}>
+              <RefreshIcon />
+            </IconButton>
+          </Tooltip>
         </Box>
         <Typography variant="body2" color="text.secondary">
           {sessions.length === 0

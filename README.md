@@ -32,9 +32,9 @@ electron-init/
 - Frontend : React, TypeScript, Vite, Material-UI (MUI), React Router
 - Backend : Node.js, TypeScript, Express, PostgreSQL
 - Desktop : Electron
-- LLM : Ollama (modèle local) avec fallback stub si nécessaire
-- RAG / Embeddings : service d'embedding basé sur Ollama, vector store en mémoire (Qdrant a venir)
-- Base de données : PostgreSQL (optionnel, en mémoire par défaut)
+- LLM : Ollama (modèle local, GPU NVIDIA supporté) avec fallback stub
+- RAG / Embeddings : Ollama (nomic-embed-text), Qdrant (vector store)
+- Base de données : PostgreSQL
 - Orchestration : Docker Compose
 
 ### 1.2. Architecture logique
@@ -91,6 +91,84 @@ cd ..
 cd backend
 npm install
 cd ..
+```
+
+### 2.3. Configuration Docker
+
+L'environnement Docker inclut tous les services nécessaires :
+- **PostgreSQL** - Base de données
+- **Ollama** - LLM local (avec GPU NVIDIA par défaut)
+- **Qdrant** - Vector store pour le RAG
+- **ollama-init** - Télécharge automatiquement les modèles
+
+#### Démarrage rapide (GPU NVIDIA)
+
+```bash
+# Démarrer tous les services en une commande
+docker-compose up -d
+```
+
+Cette commande démarre :
+- PostgreSQL sur le port `15432`
+- Ollama sur le port `11434` (avec support GPU)
+- Qdrant sur les ports `6333` et `6334`
+- Téléchargement automatique des modèles `llama3.1:8b` et `nomic-embed-text`
+
+#### Prérequis GPU NVIDIA
+
+Pour utiliser le GPU, vous devez avoir :
+- Les drivers NVIDIA installés (`nvidia-smi` doit fonctionner)
+- Docker Desktop avec le support GPU activé (Windows/Mac) ou NVIDIA Container Toolkit (Linux)
+
+#### Mode CPU uniquement
+
+Si vous n'avez pas de GPU NVIDIA, commentez la section `deploy` dans `docker-compose.yml` :
+
+```yaml
+  ollama:
+    # ...
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: all
+    #           capabilities: [gpu]
+```
+
+#### Variables d'environnement
+
+Créez un fichier `.env` à la racine (voir `.env.docker.example`) :
+
+| Variable | Défaut | Description |
+|----------|--------|-------------|
+| `POSTGRES_PORT` | 15432 | Port PostgreSQL |
+| `OLLAMA_PORT` | 11434 | Port Ollama |
+| `OLLAMA_NUM_PARALLEL` | 4 | Requêtes LLM simultanées |
+| `OLLAMA_MAX_LOADED_MODELS` | 2 | Modèles en mémoire GPU |
+| `OLLAMA_DEFAULT_MODEL` | llama3.1:8b | Modèle de chat par défaut |
+| `QDRANT_PORT` | 6333 | Port Qdrant HTTP |
+
+#### Commandes utiles
+
+```bash
+# Voir les logs
+docker-compose logs -f ollama
+
+# Vérifier que le GPU est détecté
+docker logs electron-chat-ollama 2>&1 | grep -i "GPU\|CUDA"
+
+# Lister les modèles installés
+docker exec electron-chat-ollama ollama list
+
+# Télécharger un modèle manuellement
+docker exec electron-chat-ollama ollama pull llama3.1:8b
+
+# Arrêter tous les services
+docker-compose down
+
+# Arrêter et supprimer les volumes (reset complet)
+docker-compose down -v
 ```
 
 ---
@@ -199,20 +277,79 @@ A venir
 
 ## 8. Dépannage
 
-Quelques pistes de diagnostic courantes :
+### 8.1. Problèmes généraux
 
-- Le backend ne répond pas :
-  - vérifier que le serveur est bien lancé ;
-  - tester `http://localhost:4000/health` dans un navigateur ou avec `curl` ;
-  - vérifier que le port 4000 n’est pas déjà utilisé.
+- **Le backend ne répond pas** :
+  - Vérifier que le serveur est bien lancé
+  - Tester `http://localhost:4000/health` dans un navigateur
+  - Vérifier que le port 4000 n'est pas déjà utilisé
 
-- Le frontend/Electron ne peut pas appeler l’API :
-  - vérifier la console des DevTools Electron ;
-  - vérifier que `window.api` est défini ;
-  - vérifier l’URL backend passée à Electron le cas échéant (`--backend-url=`).
+- **Le frontend/Electron ne peut pas appeler l'API** :
+  - Vérifier la console des DevTools Electron
+  - Vérifier que `window.api` est défini
+  - Vérifier l'URL backend (`--backend-url=`)
 
-- Messages d’erreur "API not available" dans l’interface :
-  - le preload n’a pas exposé correctement l’API ;
-  - redémarrer l’application Electron après avoir vérifié la configuration.
+- **Messages d'erreur "API not available"** :
+  - Le preload n'a pas exposé correctement l'API
+  - Redémarrer l'application Electron
 
-Pour des détails plus fins sur les choix d’implémentation, consultez `MVP_PLAN.md` et `PHASE2_GUIDE.md` à la racine du projet.
+### 8.2. Problèmes Docker
+
+- **Vérifier l'état des conteneurs** :
+  ```bash
+  docker-compose ps
+  ```
+
+- **Voir les logs d'un service** :
+  ```bash
+  docker-compose logs -f ollama
+  ```
+
+- **Le GPU n'est pas détecté par Ollama** :
+  ```bash
+  # Vérifier que nvidia-smi fonctionne
+  nvidia-smi
+  
+  # Vérifier les logs Ollama
+  docker logs electron-chat-ollama 2>&1 | grep -i "GPU\|CUDA"
+  ```
+  
+  Si le GPU n'est pas détecté, vérifiez que Docker Desktop a le support GPU activé (Settings > Resources > GPU).
+
+### 8.3. Problèmes Ollama
+
+- **Premier message très lent (30-60 secondes)** :
+  
+  C'est le "cold start" - Ollama charge le modèle en mémoire GPU. Le backend effectue un warmup automatique au démarrage. Attendez le message `LLM model is ready for fast responses!` dans les logs.
+
+- **Ollama ne répond plus après avoir annulé une génération** :
+  
+  Ollama ne peut pas interrompre une génération en cours. Cependant, grâce à `OLLAMA_NUM_PARALLEL=4`, vous pouvez envoyer de nouvelles requêtes pendant qu'une ancienne génération se termine en arrière-plan.
+
+- **Les réponses annulées apparaissent quand même** :
+  
+  C'est un comportement attendu temporairement. Le backend ne sauvegarde pas les messages des générations annulées, mais si une génération termine avant que vous n'annuliez, elle sera sauvegardée.
+
+- **Vérifier si Ollama fonctionne** :
+  ```bash
+  curl http://localhost:11434/api/tags
+  curl http://localhost:11434/api/ps
+  ```
+
+### 8.4. Reset complet
+
+Si vous avez des problèmes persistants :
+
+```bash
+# Arrêter et supprimer tous les conteneurs et volumes
+docker-compose down -v
+
+# Redémarrer proprement
+docker-compose up -d
+
+# Attendre que les modèles se téléchargent
+docker logs -f electron-chat-ollama-init
+```
+
+Pour des détails plus fins sur les choix d'implémentation, consultez `MVP_PLAN.md` et `PHASE2_GUIDE.md` à la racine du projet.
+

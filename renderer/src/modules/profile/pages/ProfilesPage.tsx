@@ -6,6 +6,8 @@ import ProfileDetails from '../components/ProfileDetails/ProfileDetails';
 import { profileService } from '@/services/profile/profile.service';
 import type { Profile } from '@/services/profile/profile.service.types';
 import { EmptyState } from '@/modules/shared/components';
+import { useNotification } from '@/contexts/NotificationContext';
+import { useConfirmation } from '@/contexts/ConfirmationContext';
 
 interface ProfilesPageProps {
   onCreateProfile?: () => void;
@@ -19,6 +21,8 @@ export default function ProfilesPage({ onCreateProfile, onEditProfile }: Profile
   const pollingRef = useRef<NodeJS.Timeout | null>(null);
   const isMountedRef = useRef(true);
   const initialLoadDoneRef = useRef(false);
+  const { showSuccess, showError } = useNotification();
+  const { confirmDelete } = useConfirmation();
 
   // Load profiles
   const loadProfiles = useCallback(async (autoSelectFirst = false) => {
@@ -72,8 +76,27 @@ export default function ProfilesPage({ onCreateProfile, onEditProfile }: Profile
     const profile = profiles.find((p) => p.id === selectedProfileId);
     if (!profile) return;
 
-    // TODO: Implement delete endpoint in backend
-    setError('La suppression de profil n\'est pas encore implémentée dans le backend.');
+    // Confirmation dialog
+    const confirmed = await confirmDelete(
+      profile.name,
+      'Cette action supprimera également :\n• Toutes les ressources associées\n• L\'historique des conversations\n• Les données d\'indexation RAG'
+    );
+
+    if (!confirmed) return;
+
+    try {
+      await profileService.deleteProfile(selectedProfileId);
+
+      // Reload profiles and clear selection
+      setSelectedProfileId(null);
+      await loadProfiles(false);
+
+      setError(null);
+      showSuccess(`Le profil "${profile.name}" a été supprimé avec succès`);
+    } catch (err) {
+      console.error('Error deleting profile:', err);
+      showError('Erreur lors de la suppression du profil');
+    }
   };
 
   const handleEditProfile = () => {

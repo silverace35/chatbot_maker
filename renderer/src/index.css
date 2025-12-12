@@ -58,6 +58,17 @@ body {
   overflow: hidden;
 }
 
+/* Title bar drag region */
+[style*="-webkit-app-region: drag"],
+.titlebar-drag {
+  -webkit-app-region: drag;
+}
+
+[style*="-webkit-app-region: no-drag"],
+.titlebar-no-drag {
+  -webkit-app-region: no-drag;
+}
+
 /* Selection styling */
 ::selection {
   background: var(--color-primary);

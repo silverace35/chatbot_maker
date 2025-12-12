@@ -145,6 +145,7 @@ declare global {
       create: (data: CreateProfilePayload) => Promise<Profile>
       get: (id: string) => Promise<Profile>
       update: (id: string, data: UpdateProfilePayload) => Promise<Profile>
+      delete: (id: string) => Promise<void>
     }
     rag: {
       uploadFiles: (profileId: string, files: File[]) => Promise<UploadFilesResponse>

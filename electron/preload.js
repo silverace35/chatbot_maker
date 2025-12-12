@@ -85,6 +85,19 @@ async function apiFetch(endpoint, options = {}) {
             throw new Error(error.error || `HTTP ${response.status}`);
         }
 
+        // Handle 204 No Content responses (e.g., DELETE requests)
+        if (response.status === 204) {
+            return null;
+        }
+
+        // Check if response has content before parsing JSON
+        const contentLength = response.headers.get('content-length');
+        const contentType = response.headers.get('content-type');
+
+        if (contentLength === '0' || !contentType?.includes('application/json')) {
+            return null;
+        }
+
         return await response.json();
     } catch (error) {
         console.error(`API fetch error for ${endpoint}:`, error);
@@ -107,14 +120,26 @@ async function apiFetchStream(endpoint, options = {}, onChunk, signal) {
         : controller.signal;
 
     const url = `${backendUrl}${endpoint}`;
-    const response = await fetch(url, {
-        ...options,
-        headers: {
-            'Content-Type': 'application/json',
-            ...options.headers,
-        },
-        signal: combinedSignal,
-    });
+
+    let response;
+    try {
+        response = await fetch(url, {
+            ...options,
+            headers: {
+                'Content-Type': 'application/json',
+                ...options.headers,
+            },
+            signal: combinedSignal,
+        });
+    } catch (error) {
+        if (error.name === 'AbortError') {
+            // Connexion annulée avant même d'avoir une réponse
+            console.log('[preload] Fetch aborted before response');
+            onChunk({ type: 'aborted', partial: false });
+            return;
+        }
+        throw error;
+    }
 
     if (!response.ok || !response.body) {
         const error = await response.json().catch(() => ({ error: 'Unknown error' }));
@@ -125,17 +150,48 @@ async function apiFetchStream(endpoint, options = {}, onChunk, signal) {
     const decoder = new TextDecoder();
 
     let buffer = '';
+    let aborted = false;
+
+    // Écouter le signal abort pour annuler le reader
+    const abortHandler = () => {
+        console.log('[preload] Abort signal received, cancelling reader');
+        aborted = true;
+        reader.cancel('Aborted by user').catch(() => {});
+    };
+
+    if (combinedSignal.aborted) {
+        // Déjà aborté
+        console.log('[preload] Signal already aborted');
+        await reader.cancel('Already aborted').catch(() => {});
+        onChunk({ type: 'aborted', partial: false });
+        return;
+    }
+
+    combinedSignal.addEventListener('abort', abortHandler, { once: true });
 
     try {
         while (true) {
+            if (aborted) {
+                console.log('[preload] Loop detected abort, breaking');
+                break;
+            }
+
             const { value, done } = await reader.read();
+
+            if (aborted) {
+                console.log('[preload] Read completed but aborted, breaking');
+                break;
+            }
+
             if (done) break;
+
             buffer += decoder.decode(value, { stream: true });
 
             const parts = buffer.split(/\n\n/);
             buffer = parts.pop() || '';
 
             for (const part of parts) {
+                if (aborted) break;
                 const line = part.trim();
                 if (!line.startsWith('data:')) continue;
                 const jsonPart = line.replace(/^data:\s*/, '');
@@ -147,12 +203,21 @@ async function apiFetchStream(endpoint, options = {}, onChunk, signal) {
                 }
             }
         }
+
+        // Envoyer l'événement aborted si on a été interrompu
+        if (aborted) {
+            console.log('[preload] Sending aborted event to callback');
+            onChunk({ type: 'aborted', partial: true });
+        }
     } catch (error) {
-        if (error.name === 'AbortError') {
-            // Stream cancelled, just stop quietly
+        if (error.name === 'AbortError' || aborted) {
+            console.log('[preload] Stream aborted (catch block)');
+            onChunk({ type: 'aborted', partial: true });
             return;
         }
         throw error;
+    } finally {
+        combinedSignal.removeEventListener('abort', abortHandler);
     }
 }
 
@@ -161,6 +226,17 @@ contextBridge.exposeInMainWorld("electronApi", {
     ping: () => ipcRenderer.invoke("ping"),
     openFileDialog: () => ipcRenderer.invoke("dialog:openFile"),
     notifyJokeAdded: (joke) => ipcRenderer.invoke('jokes:notify-added', joke),
+});
+
+// Expose window controls API
+contextBridge.exposeInMainWorld("windowApi", {
+    minimize: () => ipcRenderer.invoke('window:minimize'),
+    maximize: () => ipcRenderer.invoke('window:maximize'),
+    close: () => ipcRenderer.invoke('window:close'),
+    isMaximized: () => ipcRenderer.invoke('window:isMaximized'),
+    onStateChange: (callback) => {
+        ipcRenderer.on('window-state-changed', (_event, state) => callback(state));
+    },
 });
 
 // Expose new API for chat and profiles
@@ -192,6 +268,9 @@ contextBridge.exposeInMainWorld("api", {
         update: (id, data) => apiFetch(`/api/profile/${id}`, {
             method: 'PATCH',
             body: JSON.stringify(data),
+        }),
+        delete: (id) => apiFetch(`/api/profile/${id}`, {
+            method: 'DELETE',
         }),
     },
     rag: {

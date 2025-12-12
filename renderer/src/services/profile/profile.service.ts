@@ -58,4 +58,15 @@ export const profileService = {
     }
     return window.api.profile.update(id, data)
   },
+
+  /**
+   * Supprime un profil et toutes ses ressources associées
+   * @param id - ID du profil à supprimer
+   */
+  async deleteProfile(id: string): Promise<void> {
+    if (!window.api?.profile?.delete) {
+      throw new Error('Profile API not available')
+    }
+    return window.api.profile.delete(id)
+  },
 }

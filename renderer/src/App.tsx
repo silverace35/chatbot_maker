@@ -7,6 +7,7 @@ import HistoryPage from '@/modules/history/pages/HistoryPage'
 import CreateProfilePage from '@/modules/profile/pages/CreateProfilePage'
 import EditProfilePage from '@/modules/profile/pages/EditProfilePage'
 import Sidebar, { AppTab } from '@/modules/shared/components/Sidebar'
+import { TitleBar } from '@/components/TitleBar'
 import type { ChatSession } from '@/services/chat/chat.service.types'
 import type { Profile } from '@/services/profile/profile.service.types'
 
@@ -71,102 +72,115 @@ function App() {
     <Box
       sx={{
         display: 'flex',
+        flexDirection: 'column',
         height: '100vh',
         width: '100vw',
         overflow: 'hidden',
         backgroundColor: theme.palette.background.default,
       }}
     >
-      {/* Sidebar Navigation */}
-      <Sidebar currentTab={currentTab} onTabChange={handleTabChange} />
+      {/* Custom Title Bar */}
+      <TitleBar />
 
-      {/* Main Content Area */}
+      {/* Main App Content */}
       <Box
-        component="main"
         sx={{
-          flex: 1,
           display: 'flex',
-          flexDirection: 'column',
-          height: '100vh',
+          flex: 1,
           overflow: 'hidden',
-          position: 'relative',
-          // Subtle gradient background
-          '&::before': {
-            content: '""',
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background: theme.palette.mode === 'dark'
-              ? `radial-gradient(ellipse at top right, ${alpha(theme.palette.primary.dark, 0.15)} 0%, transparent 50%),
-                 radial-gradient(ellipse at bottom left, ${alpha(theme.palette.secondary.dark, 0.1)} 0%, transparent 50%)`
-              : `radial-gradient(ellipse at top right, ${alpha(theme.palette.primary.light, 0.08)} 0%, transparent 50%),
-                 radial-gradient(ellipse at bottom left, ${alpha(theme.palette.secondary.light, 0.05)} 0%, transparent 50%)`,
-            pointerEvents: 'none',
-            zIndex: 0,
-          },
         }}
       >
+        {/* Sidebar Navigation */}
+        <Sidebar currentTab={currentTab} onTabChange={handleTabChange} />
+
+        {/* Main Content Area */}
         <Box
+          component="main"
           sx={{
             flex: 1,
-            position: 'relative',
-            zIndex: 1,
+            display: 'flex',
+            flexDirection: 'column',
+            height: '100%',
             overflow: 'hidden',
+            position: 'relative',
+            // Subtle gradient background
+            '&::before': {
+              content: '""',
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              background: theme.palette.mode === 'dark'
+                ? `radial-gradient(ellipse at top right, ${alpha(theme.palette.primary.dark, 0.15)} 0%, transparent 50%),
+                   radial-gradient(ellipse at bottom left, ${alpha(theme.palette.secondary.dark, 0.1)} 0%, transparent 50%)`
+                : `radial-gradient(ellipse at top right, ${alpha(theme.palette.primary.light, 0.08)} 0%, transparent 50%),
+                   radial-gradient(ellipse at bottom left, ${alpha(theme.palette.secondary.light, 0.05)} 0%, transparent 50%)`,
+              pointerEvents: 'none',
+              zIndex: 0,
+            },
           }}
         >
-          {/* Page de création de profil */}
-          {showCreateProfile ? (
-            <CreateProfilePage
-              onProfileCreated={handleProfileCreated}
-              onCancel={handleCancelCreateProfile}
-            />
-          ) : editingProfileId ? (
-            /* Page d'édition de profil */
-            <EditProfilePage
-              profileId={editingProfileId}
-              onSaved={handleProfileSaved}
-              onCancel={handleCancelEditProfile}
-            />
-          ) : (
-            <>
-              {/* Chat - toujours monté pour préserver l'état */}
-              <Box sx={{
-                display: currentTab === 'chat' ? 'flex' : 'none',
-                flexDirection: 'column',
-                height: '100%',
-              }}>
-                <ChatPage
-                  key={chatKey}
-                  loadedSession={loadedSession}
-                  loadedProfile={loadedProfile}
-                  onSessionCleared={handleSessionCleared}
-                  onCreateProfile={handleCreateProfile}
-                />
-              </Box>
+          <Box
+            sx={{
+              flex: 1,
+              position: 'relative',
+              zIndex: 1,
+              overflow: 'hidden',
+            }}
+          >
+            {/* Page de création de profil */}
+            {showCreateProfile ? (
+              <CreateProfilePage
+                onProfileCreated={handleProfileCreated}
+                onCancel={handleCancelCreateProfile}
+              />
+            ) : editingProfileId ? (
+              /* Page d'édition de profil */
+              <EditProfilePage
+                profileId={editingProfileId}
+                onSaved={handleProfileSaved}
+                onCancel={handleCancelEditProfile}
+              />
+            ) : (
+              <>
+                {/* Chat - toujours monté pour préserver l'état */}
+                <Box sx={{
+                  display: currentTab === 'chat' ? 'flex' : 'none',
+                  flexDirection: 'column',
+                  height: '100%',
+                }}>
+                  <ChatPage
+                    key={chatKey}
+                    loadedSession={loadedSession}
+                    loadedProfile={loadedProfile}
+                    onSessionCleared={handleSessionCleared}
+                    onCreateProfile={handleCreateProfile}
+                  />
+                </Box>
 
-              {/* History */}
-              <Box sx={{
-                display: currentTab === 'history' ? 'block' : 'none',
-                height: '100%',
-              }}>
-                <HistoryPage onLoadConversation={handleLoadConversation} />
-              </Box>
+                {/* History */}
+                <Box sx={{
+                  display: currentTab === 'history' ? 'block' : 'none',
+                  height: '100%',
+                }}>
+                  <HistoryPage onLoadConversation={handleLoadConversation} />
+                </Box>
 
-              {/* Profiles */}
-              <Box sx={{
-                display: currentTab === 'profiles' ? 'block' : 'none',
-                height: '100%',
-              }}>
-                <ProfilesPage
-                  key={profilesKey}
-                  onCreateProfile={handleCreateProfile}
-                  onEditProfile={handleEditProfile}
-                />
-              </Box>
-            </>
-          )}
+                {/* Profiles */}
+                <Box sx={{
+                  display: currentTab === 'profiles' ? 'block' : 'none',
+                  height: '100%',
+                }}>
+                  <ProfilesPage
+                    key={profilesKey}
+                    onCreateProfile={handleCreateProfile}
+                    onEditProfile={handleEditProfile}
+                  />
+                </Box>
+              </>
+            )}
+          </Box>
         </Box>
       </Box>
     </Box>

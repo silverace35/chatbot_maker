@@ -30,6 +30,7 @@ import { profileService } from '@/services/profile/profile.service';
 import { ragService } from '@/services/rag/rag.service';
 import type { Profile, CreateProfilePayload } from '@/services/profile/profile.service.types';
 import type { Resource } from '@/types/electron-api';
+import { useNotification } from '@/contexts/NotificationContext';
 
 interface EditProfilePageProps {
   profileId: string;
@@ -39,6 +40,7 @@ interface EditProfilePageProps {
 
 export default function EditProfilePage({ profileId, onSaved, onCancel }: EditProfilePageProps) {
   const theme = useTheme();
+  const { showSuccess, showError, showInfo } = useNotification();
 
   // Profile data
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -109,9 +111,11 @@ export default function EditProfilePage({ profileId, onSaved, onCancel }: EditPr
     try {
       await ragService.deleteResource(profileId, resourceId);
       setExistingResources(prev => prev.filter(r => r.id !== resourceId));
+      showSuccess('Fichier supprimé avec succès');
     } catch (err) {
       console.error('Error deleting resource:', err);
       setError('Erreur lors de la suppression du fichier.');
+      showError('Erreur lors de la suppression du fichier');
     }
   };
 
@@ -124,12 +128,15 @@ export default function EditProfilePage({ profileId, onSaved, onCancel }: EditPr
   const handleStartIndexing = async () => {
     try {
       setIndexing(true);
+      showInfo('Indexation en cours...');
       await ragService.startIndexing(profileId);
       const updatedProfile = await profileService.getProfile(profileId);
       setProfile(updatedProfile);
+      showSuccess('Indexation terminée avec succès');
     } catch (err) {
       console.error('Error starting indexing:', err);
       setError('Erreur lors du démarrage de l\'indexation.');
+      showError('Erreur lors de l\'indexation');
     } finally {
       setIndexing(false);
     }
@@ -164,10 +171,12 @@ export default function EditProfilePage({ profileId, onSaved, onCancel }: EditPr
         setUploadingFiles(false);
       }
 
+      showSuccess(`Le profil "${name.trim()}" a été mis à jour avec succès`);
       onSaved();
     } catch (err) {
       console.error('Error updating profile:', err);
       setError('Erreur lors de la mise à jour du profil. Veuillez réessayer.');
+      showError('Erreur lors de la mise à jour du profil');
     } finally {
       setSaving(false);
     }
@@ -175,7 +184,7 @@ export default function EditProfilePage({ profileId, onSaved, onCancel }: EditPr
 
   // Dériver le statut d'index pour l'affichage
   const getIndexStatusBadge = (): 'success' | 'warning' | 'error' | 'default' | 'pending' | 'info' => {
-    if (isIndexing) return 'info';
+    if (indexing) return 'info';
     if (!profile) return 'default';
     switch (profile.indexStatus) {
       case 'ready': return 'success';
@@ -188,7 +197,7 @@ export default function EditProfilePage({ profileId, onSaved, onCancel }: EditPr
   };
 
   const getIndexStatusLabel = () => {
-    if (isIndexing) return 'Indexation...';
+    if (indexing) return 'Indexation...';
     if (!profile) return 'Non indexé';
     switch (profile.indexStatus) {
       case 'ready': return 'Indexé';
@@ -350,7 +359,7 @@ export default function EditProfilePage({ profileId, onSaved, onCancel }: EditPr
                       <StatusBadge
                         status={getIndexStatusBadge()}
                         label={getIndexStatusLabel()}
-                        pulse={isIndexing}
+                        pulse={indexing}
                       />
                     )}
                   </Box>
@@ -391,29 +400,15 @@ export default function EditProfilePage({ profileId, onSaved, onCancel }: EditPr
                     <Button
                       variant="contained"
                       size="small"
-                      startIcon={isIndexing ? <CircularProgress size={16} color="inherit" /> : <PlayArrowIcon />}
+                      startIcon={indexing ? <CircularProgress size={16} color="inherit" /> : <PlayArrowIcon />}
                       onClick={handleStartIndexing}
-                      disabled={isIndexing || saving}
+                      disabled={indexing || saving}
                       sx={{ borderRadius: 2 }}
                     >
-                      {isIndexing ? 'Indexation...' : 'Indexer'}
+                      {indexing ? 'Indexation...' : 'Indexer'}
                     </Button>
                   )}
                 </Box>
-
-                {/* Indexing Progress */}
-                {(isIndexing || indexingJob) && (
-                  <Box sx={{ mb: 2 }}>
-                    <IndexingProgress
-                      job={indexingJob}
-                      isIndexing={isIndexing}
-                      progress={indexingProgress}
-                      statusMessage={indexingStatusMessage}
-                      error={indexingError}
-                      onRefresh={refreshIndexingStatus}
-                    />
-                  </Box>
-                )}
 
                 {/* Existing Resources */}
                 {existingResources.length > 0 && (

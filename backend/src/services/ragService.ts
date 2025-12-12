@@ -29,17 +29,17 @@ class RAGService {
     }
 
     if (!profile.ragEnabled) {
-      logger.warn('Cannot start indexing: RAG not enabled for profile', { 
-        profileId, 
-        profileName: profile.name 
+      logger.warn('Cannot start indexing: RAG not enabled for profile', {
+        profileId,
+        profileName: profile.name
       });
       throw new Error(`RAG is not enabled for profile ${profileId}`);
     }
 
     if (!profile.embeddingModelId) {
-      logger.error('Cannot start indexing: no embedding model configured', { 
+      logger.error('Cannot start indexing: no embedding model configured', {
         profileId,
-        profileName: profile.name 
+        profileName: profile.name
       });
       throw new Error(`No embedding model configured for profile ${profileId}`);
     }
@@ -48,9 +48,9 @@ class RAGService {
     const resources = await store.listResources(profileId);
 
     if (resources.length === 0) {
-      logger.warn('Cannot start indexing: no resources found', { 
+      logger.warn('Cannot start indexing: no resources found', {
         profileId,
-        profileName: profile.name 
+        profileName: profile.name
       });
       throw new Error(`No resources found for profile ${profileId}`);
     }
@@ -286,7 +286,7 @@ class RAGService {
       resourceId: resource.id,
       resourceName: resource.originalName,
       chunkCount: chunks.length,
-      avgChunkSize: chunks.length > 0 
+      avgChunkSize: chunks.length > 0
         ? Math.round(chunks.reduce((sum, c) => sum + c.content.length, 0) / chunks.length)
         : 0,
     });
@@ -425,13 +425,19 @@ class RAGService {
 
     const embeddingModelId = profile.embeddingModelId || embeddingService.getDefaultModelId();
     const collectionName = getCollectionName(profileId, embeddingModelId);
-    const k = topK || profile.ragSettings.topK || 5;
-    const threshold = profile.ragSettings.similarityThreshold || 0.7;
 
-    logger.debug('Generating query embedding', {
+    // FORCER les valeurs pour le debug - ignorer ragSettings
+    const k = topK || 10; // Augmenté à 10 pour capturer plus de résultats
+    const threshold = 0.0; // Seuil à 0 pour tout capturer, on filtre après
+
+    logger.info('RAG search parameters', {
       profileId,
       embeddingModel: embeddingModelId,
-      query: query.substring(0, 100) + (query.length > 100 ? '...' : ''),
+      collectionName,
+      topK: k,
+      similarityThreshold: threshold,
+      profileRagSettings: profile.ragSettings, // Log pour debug
+      queryPreview: query.substring(0, 100) + (query.length > 100 ? '...' : ''),
     });
 
     // Generate query embedding
@@ -492,8 +498,8 @@ class RAGService {
         messageLength: userMessage.length,
       });
 
-      // Search for relevant context
-      const results = await this.searchSimilar(profile.id, userMessage);
+      // Search for relevant context - FORCER topK à 10 pour debug
+      const results = await this.searchSimilar(profile.id, userMessage, 10);
 
       if (results.length === 0) {
         logger.info('No relevant context found for prompt augmentation', {
@@ -502,30 +508,66 @@ class RAGService {
         return userMessage;
       }
 
-      // Build context string
-      const contextParts = results.map((result, idx) =>
-        `[Context ${idx + 1}] (relevance: ${(result.score * 100).toFixed(1)}%)\n${result.content}`
-      );
+      // Filter results with minimum confidence score (keep only decent matches)
+      const minConfidence = 0.3; // Seuil de confiance minimum
+      const filteredResults = results.filter(r => r.score >= minConfidence);
+
+      if (filteredResults.length === 0) {
+        logger.info('All results below confidence threshold', {
+          profileId: profile.id,
+          resultsCount: results.length,
+          minConfidence,
+          topScore: results[0]?.score,
+        });
+        return userMessage;
+      }
+
+      // Build context string with clear structure
+      const contextParts = filteredResults.map((result, idx) => {
+        const source = result.metadata?.originalName || 'Document';
+        const confidence = (result.score * 100).toFixed(0);
+        return `━━━ Source ${idx + 1}: ${source} (relevance: ${confidence}%) ━━━
+${result.content}`;
+      });
 
       const context = contextParts.join('\n\n');
 
-      // Augment the prompt
-      const augmentedPrompt = `En te basant sur les informations suivantes, réponds à la question de l'utilisateur.
+      // Build a more structured augmented prompt with language detection
+      const augmentedPrompt = `<INSTRUCTIONS>
+LANGUAGE RULE: Detect the language of the user's question and ALWAYS respond in the SAME language.
+- If the question is in English → respond in English
+- If the question is in French → respond in French
+- If the question is in Spanish → respond in Spanish
+- etc.
 
-Contexte:
+CONTENT RULES:
+- Answer ONLY using information from the <CONTEXT> section below.
+- If the information IS in the context, use it to formulate a precise and complete answer.
+- If the information is NOT in the context, clearly say "This information is not available in my knowledge base." (in the user's language)
+- NEVER invent information (prices, delays, features) not explicitly mentioned.
+- Quote exact product names, service codes, and figures from the context.
+</INSTRUCTIONS>
+
+<CONTEXT>
 ${context}
+</CONTEXT>
 
-Question de l'utilisateur:
+<USER_QUESTION>
 ${userMessage}
+</USER_QUESTION>
 
-Réponds en utilisant le contexte fourni si pertinent.`;
+<RESPONSE_FORMAT>
+Respond professionally and in a structured way. Be precise when citing information from the context.
+IMPORTANT: Your response MUST be in the same language as the user's question.
+</RESPONSE_FORMAT>`;
 
       logger.info('Prompt augmented successfully', {
         profileId: profile.id,
-        contextChunks: results.length,
+        contextChunks: filteredResults.length,
+        totalResultsBeforeFilter: results.length,
         originalLength: userMessage.length,
         augmentedLength: augmentedPrompt.length,
-        topRelevanceScores: results.slice(0, 3).map(r => r.score),
+        topRelevanceScores: filteredResults.slice(0, 3).map(r => r.score.toFixed(3)),
       });
 
       return augmentedPrompt;

@@ -26,6 +26,7 @@ import { GlassCard } from '@/modules/shared/components';
 import { profileService } from '@/services/profile/profile.service';
 import { ragService } from '@/services/rag/rag.service';
 import type { CreateProfilePayload } from '@/services/profile/profile.service.types';
+import { useNotification } from '@/contexts/NotificationContext';
 
 interface CreateProfilePageProps {
   onProfileCreated: (profileId: string) => void;
@@ -34,6 +35,7 @@ interface CreateProfilePageProps {
 
 export default function CreateProfilePage({ onProfileCreated, onCancel }: CreateProfilePageProps) {
   const theme = useTheme();
+  const { showSuccess, showError } = useNotification();
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [systemContext, setSystemContext] = useState('');
@@ -97,10 +99,12 @@ export default function CreateProfilePage({ onProfileCreated, onCancel }: Create
         setUploadingFiles(false);
       }
 
+      showSuccess(`Le profil "${name.trim()}" a été créé avec succès`);
       onProfileCreated(newProfile.id);
     } catch (err) {
       console.error('Error creating profile:', err);
       setError('Erreur lors de la création du profil. Veuillez réessayer.');
+      showError('Erreur lors de la création du profil');
     } finally {
       setLoading(false);
     }

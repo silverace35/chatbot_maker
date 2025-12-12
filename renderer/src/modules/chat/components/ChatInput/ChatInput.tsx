@@ -1,7 +1,6 @@
 import { useState, FormEvent } from 'react'
-import { Box, TextField, IconButton, Tooltip, useTheme, alpha, Paper } from '@mui/material'
+import { Box, TextField, IconButton, Tooltip, useTheme, alpha, Paper, CircularProgress } from '@mui/material'
 import SendIcon from '@mui/icons-material/Send'
-import StopIcon from '@mui/icons-material/Stop'
 import type { ChatInputProps } from './ChatInput.types'
 
 export default function ChatInput({
@@ -17,12 +16,11 @@ export default function ChatInput({
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault()
-    if (isStreaming) {
-      if (onStop) onStop()
-      return
-    }
+    // Ne rien faire si un stream est en cours
+    if (isStreaming || disabled) return
+
     const trimmed = message.trim()
-    if (trimmed && !disabled) {
+    if (trimmed) {
       onSubmit(trimmed)
       setMessage('')
     }
@@ -35,7 +33,8 @@ export default function ChatInput({
     }
   }
 
-  const canSend = !disabled && message.trim().length > 0
+  // Désactiver l'envoi pendant le streaming ou si disabled
+  const canSend = !disabled && !isStreaming && message.trim().length > 0
 
   return (
     <Box
@@ -80,8 +79,8 @@ export default function ChatInput({
           onChange={(e) => setMessage(e.target.value)}
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
-          placeholder={placeholder}
-          disabled={disabled && !isStreaming}
+          placeholder={isStreaming ? 'Génération en cours...' : placeholder}
+          disabled={disabled || isStreaming}
           variant="standard"
           onKeyDown={handleKeyDown}
           InputProps={{
@@ -103,25 +102,21 @@ export default function ChatInput({
         />
 
         <Tooltip
-          title={isStreaming ? 'Arrêter la génération' : (canSend ? 'Envoyer (Entrée)' : 'Tapez un message')}
+          title={isStreaming ? 'Génération en cours...' : (canSend ? 'Envoyer (Entrée)' : 'Tapez un message')}
           placement="top"
         >
           <span>
             <IconButton
               type="submit"
-              disabled={!isStreaming && !canSend}
+              disabled={!canSend}
               sx={{
                 width: 40,
                 height: 40,
                 borderRadius: 2,
                 transition: 'all 0.2s ease-in-out',
                 ...(isStreaming ? {
-                  backgroundColor: alpha(theme.palette.error.main, 0.1),
-                  color: theme.palette.error.main,
-                  '&:hover': {
-                    backgroundColor: alpha(theme.palette.error.main, 0.2),
-                    transform: 'scale(1.05)',
-                  },
+                  backgroundColor: alpha(theme.palette.primary.main, 0.1),
+                  color: theme.palette.primary.main,
                 } : canSend ? {
                   background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
                   color: '#FFFFFF',
@@ -138,7 +133,7 @@ export default function ChatInput({
               }}
             >
               {isStreaming ? (
-                <StopIcon sx={{ fontSize: 20 }} />
+                <CircularProgress size={20} color="inherit" />
               ) : (
                 <SendIcon sx={{ fontSize: 20 }} />
               )}
