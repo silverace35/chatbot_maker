@@ -398,6 +398,7 @@ Pour des détails plus fins sur les choix d'implémentation, consultez `MVP_PLAN
 |----------|-------------|
 | [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | Architecture macro du projet avec diagrammes Mermaid |
 | [`docs/DATABASE_MPD.md`](docs/DATABASE_MPD.md) | Modèle Physique de Données (MPD) - Schéma complet de la base PostgreSQL |
+| [`docs/PRESENTATION.md`](docs/PRESENTATION.md) | Document de présentation : sécurité, BDD, CI/CD, Q&A |
 | `MVP_PLAN.md` | Plan d'implémentation du MVP |
 | `PHASE2_GUIDE.md` | Guide de la phase 2 du projet |
 

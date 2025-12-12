@@ -20,15 +20,30 @@ export default function ChatMessages({ messages, isLoading, assistantName }: Cha
     el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' })
   }
 
-  const handleScroll = () => {
+  const checkScrollPosition = () => {
     const el = containerRef.current
     if (!el) return
     const isNearBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 100
     setShowScrollButton(!isNearBottom)
   }
 
+  const handleScroll = () => {
+    checkScrollPosition()
+  }
+
+  // Vérifier la position du scroll quand les messages changent
   useEffect(() => {
-    scrollToBottom()
+    checkScrollPosition()
+  }, [messages])
+
+  // Auto-scroll seulement si on est déjà en bas
+  useEffect(() => {
+    const el = containerRef.current
+    if (!el) return
+    const isNearBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 150
+    if (isNearBottom) {
+      scrollToBottom()
+    }
   }, [messages.length])
 
   const handleCopy = async (content: string, index: number) => {
@@ -46,16 +61,24 @@ export default function ChatMessages({ messages, isLoading, assistantName }: Cha
 
   return (
     <Box
-      ref={containerRef}
-      onScroll={handleScroll}
       sx={{
         flex: 1,
-        overflow: 'auto',
+        position: 'relative',
+        overflow: 'hidden',
         display: 'flex',
         flexDirection: 'column',
-        position: 'relative',
       }}
     >
+      <Box
+        ref={containerRef}
+        onScroll={handleScroll}
+        sx={{
+          flex: 1,
+          overflow: 'auto',
+          display: 'flex',
+          flexDirection: 'column',
+        }}
+      >
       {/* Empty State */}
       {messages.length === 0 && !isLoading && (
         <Box
@@ -280,6 +303,7 @@ export default function ChatMessages({ messages, isLoading, assistantName }: Cha
           </Box>
         )}
       </Box>
+      </Box>
 
       {/* Scroll to Bottom Button */}
       {showScrollButton && (
@@ -293,6 +317,7 @@ export default function ChatMessages({ messages, isLoading, assistantName }: Cha
             backgroundColor: theme.palette.background.paper,
             color: theme.palette.text.primary,
             boxShadow: theme.shadows[4],
+            zIndex: 10,
             '&:hover': {
               backgroundColor: theme.palette.action.hover,
             },
